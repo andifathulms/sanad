@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.Python
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/backend/staticfiles/
+/backend/media/
+/backend/static_collected/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+.npm
+*.tsbuildinfo
+next-env.d.ts
+
+# Coverage / tests
+.coverage
+htmlcov/
+.pytest_cache/
+coverage/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Data dumps (ingested corpus)
+/backend/scripts/ingest/cache/
+*.sqlite
+*.sqlite-dump
