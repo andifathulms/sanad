@@ -124,11 +124,13 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
+# Shared with Quranlytics so one account works on both platforms. An empty/unset
+# value falls back to SECRET_KEY (an empty HS256 key raises InvalidKeyError).
+SHARED_AUTH_SECRET = env("SHARED_AUTH_SECRET", default="") or SECRET_KEY
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
-    # Shared with Quranlytics so one account works on both platforms
-    "SIGNING_KEY": env("SHARED_AUTH_SECRET", default=SECRET_KEY),
+    "SIGNING_KEY": SHARED_AUTH_SECRET,
 }
 
 # --- CORS -----------------------------------------------------------------
