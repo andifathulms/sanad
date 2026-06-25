@@ -68,7 +68,10 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
+      # Server-side rendering reaches Django over the compose network…
       BACKEND_INTERNAL_URL: http://backend:8000
+      # …while browser-side calls go straight to the published backend port (CORS open in dev).
+      NEXT_PUBLIC_API_BASE: http://localhost:${BACKEND_PORT:-8000}/api/v1
     depends_on: [backend]
 
 volumes:

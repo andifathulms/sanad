@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { NavAuth } from "@/components/NavAuth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,9 +19,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <div className="flex gap-6 text-sm text-ivory/80">
               <Link href="/reader" className="hover:text-amber-node">Reader</Link>
+              <Link href="/search" className="hover:text-amber-node">Search</Link>
               <Link href="/analyze/network" className="hover:text-amber-node">Network</Link>
-              <Link href="/explore" className="hover:text-amber-node">Explore</Link>
               <Link href="/dashboard" className="hover:text-amber-node">Dashboard</Link>
+              <NavAuth />
             </div>
           </nav>
         </header>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getHadith, getSanad } from "@/lib/api/hadith";
+import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { SanadInline } from "@/components/reader/SanadInline";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
@@ -37,7 +38,10 @@ export default async function HadithDetailPage({
             <p className="font-mono text-xs text-ivory/40">also: {hadith.alt_reference}</p>
           )}
         </div>
-        <GradeBadge grade={hadith.grade} source={hadith.grade_source} />
+        <div className="flex items-center gap-3">
+          <BookmarkButton hadithId={hadith.id} />
+          <GradeBadge grade={hadith.grade} source={hadith.grade_source} />
+        </div>
       </header>
 
       {hadith.grade === "maudu" && (
