@@ -13,9 +13,46 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from apps.hadith.models import Book, Hadith
+from apps.hadith.models import Book, Chapter, Hadith
 from apps.hadith.text_utils import normalize_arabic
 from scripts.ingest.http import fetch_json
+
+# fawazahmed0 stores grades as free text per scholar. We surface a single primary
+# grade (preferring widely-cited muhaddithun) plus the scholar's name — the platform
+# never asserts its own grade. Books in this set are Sahih by their collector's standard.
+PRIMARY_GRADERS = ["Al-Albani", "Shuaib Al Arnaut", "Zubair Ali Zai"]
+INTRINSICALLY_SAHIH = {"bukhari", "muslim"}
+
+
+def map_grade(text: str) -> str:
+    """Map a free-text grade string to one of our GRADE_CHOICES."""
+    t = (text or "").lower()
+    if not t:
+        return "unknown"
+    if "maudu" in t or "fabricat" in t or "موضوع" in t:
+        return "maudu"
+    # 'hasan sahih' / 'sahih lighairihi' -> treat as sahih; check sahih before hasan
+    if "sahih" in t or "صحيح" in t:
+        return "sahih"
+    if "hasan" in t or "حسن" in t:
+        return "hasan"
+    if "daif" in t or "weak" in t or "ضعيف" in t or "shadh" in t or "munkar" in t:
+        return "daif"
+    return "unknown"
+
+
+def pick_grade(grades: list[dict], book_slug: str, author: str) -> tuple[str, str]:
+    """Return (grade, grade_source) from the per-scholar grade list."""
+    if not grades:
+        if book_slug in INTRINSICALLY_SAHIH:
+            return "sahih", author  # Sahih by the collector's own criterion
+        return "unknown", ""
+    by_name = {g.get("name", ""): g.get("grade", "") for g in grades}
+    for grader in PRIMARY_GRADERS:
+        if grader in by_name:
+            return map_grade(by_name[grader]), grader
+    first = grades[0]
+    return map_grade(first.get("grade", "")), first.get("name", "")
 
 # Display metadata for the books we ingest (slug -> names/author/type).
 BOOK_META = {
@@ -75,27 +112,63 @@ class Command(BaseCommand):
             },
         )
 
+        chapters = self._sync_chapters(book, ar.get("metadata", {}))
+
         created = 0
         with transaction.atomic():
             for row in ar_hadiths:
                 number = row["hadithnumber"]
                 arabic = row.get("text", "")
-                english = en_by_no.get(number, {}).get("text", "")
+                en_row = en_by_no.get(number, {})
+                section_no = (row.get("reference") or {}).get("book")
+                grade, grade_source = pick_grade(row.get("grades", []), slug, author)
                 Hadith.objects.update_or_create(
                     book=book,
                     number_in_book=number,
                     defaults={
+                        "chapter": chapters.get(section_no),
                         "global_reference": f"{slug}:{number}",
+                        "alt_reference": str(row.get("arabicnumber") or ""),
                         "matn_arabic": arabic,
                         "matn_clean": normalize_arabic(arabic),
-                        "translation_en": english,
+                        "translation_en": en_row.get("text", ""),
+                        "grade": grade,
+                        "grade_source": grade_source,
                         "source_api": "fawazahmed0",
                     },
                 )
                 created += 1
         book.total_hadiths = book.hadiths.count()
         book.save(update_fields=["total_hadiths"])
-        self.stdout.write(self.style.SUCCESS(f"  stored {created} hadiths"))
+        for ch in chapters.values():
+            ch.hadith_count = book.hadiths.filter(chapter=ch).count()
+        Chapter.objects.bulk_update(chapters.values(), ["hadith_count"])
+        self.stdout.write(
+            self.style.SUCCESS(f"  stored {created} hadiths across {len(chapters)} chapters")
+        )
+
+    def _sync_chapters(self, book: Book, metadata: dict) -> dict[int, Chapter]:
+        """Create Chapter rows from edition metadata.sections ({number: title}).
+
+        The fawazahmed0 sections are English-titled; Arabic chapter titles are not
+        provided by this source, so title_arabic is left blank for later curation.
+        """
+        sections = metadata.get("sections", {}) or {}
+        chapters: dict[int, Chapter] = {}
+        for key, title in sections.items():
+            try:
+                number = int(key)
+            except (TypeError, ValueError):
+                continue
+            if number == 0 or not title:
+                continue  # section 0 is an empty preamble
+            chapter, _ = Chapter.objects.update_or_create(
+                book=book,
+                number=number,
+                defaults={"title_en": title, "title_arabic": ""},
+            )
+            chapters[number] = chapter
+        return chapters
 
     def _edition(self, slug: str, edition: str) -> dict:
         url = f"{CDN}/editions/{edition}.json"

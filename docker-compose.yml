@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: sanad
       POSTGRES_PASSWORD: sanad_dev
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,13 +18,13 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
 
   backend:
     build: ./backend
     command: python manage.py runserver 0.0.0.0:8000
     ports:
-      - "8000:8000"
+      - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend:/app
     environment:
@@ -63,7 +63,7 @@ services:
     build: ./frontend
     command: npm run dev
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
