@@ -1,4 +1,3 @@
-from django.core.cache import cache
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
@@ -8,13 +7,13 @@ from rest_framework.views import APIView
 from apps.hadith.models import Hadith
 
 from . import graph as graph_engine
-from .models import HadithNarrator, Narrator
+from .graph import RELIABILITY_COLORS
+from .models import HadithNarrator, Narrator, NarratorLink
 from .serializers import (
     ChainNarratorSerializer,
     NarratorDetailSerializer,
     NarratorListSerializer,
 )
-from .tasks import GRAPH_CACHE_KEY
 
 
 class NarratorViewSet(viewsets.ReadOnlyModelViewSet):
@@ -116,14 +115,69 @@ class IsnadCompareView(APIView):
 
 
 class GlobalNetworkView(APIView):
-    """Cached global narrator network for the D3 force graph."""
+    """Top-N narrator network for the D3 force graph.
+
+    Returns the most central narrators (optionally filtered) plus the edges that run
+    *between* them, so the client renders a connected, bounded subgraph rather than an
+    arbitrary slice. Never returns the full 27k-node graph (CLAUDE.md graph-size rule).
+    """
 
     def get(self, request):
-        payload = cache.get(GRAPH_CACHE_KEY)
-        if payload is None:
-            # Build on demand if Celery hasn't populated it yet.
-            payload = graph_engine._to_flow_payload(graph_engine.build_narrator_graph())
-        limit = int(request.query_params.get("limit", 500))
-        return Response(
-            {"nodes": payload["nodes"][:limit], "edges": payload["edges"]}
+        params = request.query_params
+        limit = min(int(params.get("limit", 300)), 1000)
+
+        narrators = Narrator.objects.all()
+        if generation := params.get("generation"):
+            narrators = narrators.filter(generation=generation)
+        if reliability := params.get("reliability"):
+            narrators = narrators.filter(reliability_grade=reliability)
+
+        top = list(
+            narrators.order_by("-centrality_score", "-total_hadiths")[:limit]
         )
+        ids = {n.id for n in top}
+        nodes = [
+            {
+                "id": str(n.id),
+                "label": n.name_arabic,
+                "reliability": n.reliability_grade,
+                "color": RELIABILITY_COLORS.get(n.reliability_grade, "#95A5A6"),
+                "generation": n.generation,
+                "hadiths": n.total_hadiths,
+                "centrality": round(n.centrality_score, 5),
+            }
+            for n in top
+        ]
+        edges = [
+            {"source": str(t), "target": str(s)}
+            for t, s in NarratorLink.objects.filter(
+                teacher_id__in=ids, student_id__in=ids
+            ).values_list("teacher_id", "student_id")
+        ]
+        return Response(
+            {"nodes": nodes, "edges": edges, "total_narrators": narrators.count()}
+        )
+
+
+class NarratorPathView(APIView):
+    """Shortest chain of transmission between two narrators (heavy — builds the graph)."""
+
+    def get(self, request):
+        try:
+            src = int(request.query_params["from"])
+            dst = int(request.query_params["to"])
+        except (KeyError, ValueError):
+            return Response({"detail": "from and to narrator ids are required"}, status=400)
+
+        path_ids = graph_engine.get_shortest_path(src, dst)
+        by_id = Narrator.objects.in_bulk(path_ids)
+        path = [
+            {
+                "id": nid,
+                "name_arabic": by_id[nid].name_arabic,
+                "reliability_grade": by_id[nid].reliability_grade,
+            }
+            for nid in path_ids
+            if nid in by_id
+        ]
+        return Response({"path": path, "length": max(len(path) - 1, 0)})
