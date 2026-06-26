@@ -14,10 +14,12 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "reactflow": "11.11.4",
+    "d3-force": "3.0.0",
     "swr": "2.2.5",
     "clsx": "2.1.1"
   },
   "devDependencies": {
+    "@types/d3-force": "3.0.10",
     "@types/node": "20.14.2",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",

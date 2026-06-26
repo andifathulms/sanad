@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/reader" className="hover:text-amber-node">Reader</Link>
               <Link href="/search" className="hover:text-amber-node">Search</Link>
               <Link href="/narrator" className="hover:text-amber-node">Rijal</Link>
+              <Link href="/analyze/network" className="hover:text-amber-node">Network</Link>
               <Link href="/isnad/compare" className="hover:text-amber-node">Compare</Link>
               <Link href="/dashboard" className="hover:text-amber-node">Dashboard</Link>
               <NavAuth />
