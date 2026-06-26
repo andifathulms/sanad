@@ -1,4 +1,5 @@
 import { getNarrator } from "@/lib/api/hadith";
+import { NarratorTabs } from "@/components/isnad/NarratorTabs";
 import { RELIABILITY_COLORS } from "@/components/reader/NarratorChip";
 import type { Narrator } from "@/lib/api/types";
 
@@ -43,9 +44,11 @@ export default async function NarratorPage({ params }: { params: { id: string } 
         <Fact label="Centrality" value={narrator.centrality_score.toFixed(4)} />
       </dl>
 
-      <p className="text-sm text-ivory/50">
-        Teacher/student tabs and the ego-network graph land in Phase 2. Reliability
-        assessments are always attributed to classical rijal scholarship.
+      <NarratorTabs narratorId={narrator.id} />
+
+      <p className="text-xs text-ivory/40">
+        Chain links are extracted from the isnad text. Reliability assessments are always
+        attributed to classical rijal scholarship — the platform never grades narrators itself.
       </p>
     </section>
   );
