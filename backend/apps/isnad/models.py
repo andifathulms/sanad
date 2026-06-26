@@ -106,3 +106,6 @@ class HadithNarrator(models.Model):
     class Meta:
         unique_together = ("hadith", "narrator", "position")
         ordering = ["hadith", "position"]
+
+    def __str__(self):
+        return f"{self.hadith_id} #{self.position}: {self.narrator_id}"

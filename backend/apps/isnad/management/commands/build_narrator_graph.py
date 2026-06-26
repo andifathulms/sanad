@@ -36,7 +36,7 @@ class Command(BaseCommand):
 
         for chain in chains.values():
             # position 1 = closest to Prophet; teacher is the earlier (lower) position
-            for (teacher_id, book_id), (student_id, _) in zip(chain, chain[1:]):
+            for (teacher_id, book_id), (student_id, _) in zip(chain, chain[1:], strict=False):
                 edge = edges[(teacher_id, student_id)]
                 edge["count"] += 1
                 edge["books"].add(book_id)

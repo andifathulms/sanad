@@ -116,6 +116,9 @@ class HadithParallel(models.Model):
         unique_together = ("hadith", "parallel_hadith")
         ordering = ["-similarity_score"]
 
+    def __str__(self):
+        return f"{self.hadith_id} ~ {self.parallel_hadith_id} ({self.similarity_score:.2f})"
+
 
 class HadithQuranRef(models.Model):
     """Links a hadith to a Quran verse (for the Quranlytics bridge)."""
@@ -133,3 +136,6 @@ class HadithQuranRef(models.Model):
     class Meta:
         unique_together = ("hadith", "surah_number", "verse_number")
         ordering = ["surah_number", "verse_number"]
+
+    def __str__(self):
+        return f"{self.hadith_id} -> Q{self.surah_number}:{self.verse_number}"

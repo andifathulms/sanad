@@ -61,7 +61,7 @@ def _compute_narrator_stats():
 
 def _compute_word_frequency():
     per_book = defaultdict(Counter)
-    for h_id, slug, matn in Hadith.objects.values_list("id", "book__slug", "matn_clean"):
+    for _h_id, slug, matn in Hadith.objects.values_list("id", "book__slug", "matn_clean"):
         for token in _TOKEN_RE.findall(matn or ""):
             per_book[token][slug] += 1
 

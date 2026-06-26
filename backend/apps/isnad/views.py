@@ -99,7 +99,7 @@ class IsnadCompareView(APIView):
         chain1, chain2 = chain(h1), chain(h2)
         shared = sorted(set(chain1) & set(chain2))
         divergence = None
-        for i, (a, b) in enumerate(zip(chain1, chain2)):
+        for i, (a, b) in enumerate(zip(chain1, chain2, strict=False)):
             if a != b:
                 divergence = i
                 break

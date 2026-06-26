@@ -30,6 +30,9 @@ class Bookmark(models.Model):
         unique_together = ("user", "hadith")
         ordering = ["-created_at"]
 
+    def __str__(self):
+        return f"{self.user_id} bookmarked {self.hadith_id}"
+
 
 class Collection(models.Model):
     """A user-curated list of hadiths (e.g. 'Hadiths on patience')."""
@@ -58,6 +61,9 @@ class CollectionItem(models.Model):
         unique_together = ("collection", "hadith")
         ordering = ["position", "added_at"]
 
+    def __str__(self):
+        return f"{self.hadith_id} in collection {self.collection_id}"
+
 
 class ReadingHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="history")
@@ -67,3 +73,6 @@ class ReadingHistory(models.Model):
     class Meta:
         ordering = ["-read_at"]
         indexes = [models.Index(fields=["user", "-read_at"])]
+
+    def __str__(self):
+        return f"{self.user_id} read {self.hadith_id}"

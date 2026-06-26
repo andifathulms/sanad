@@ -35,6 +35,9 @@ class NarratorStats(models.Model):
     class Meta:
         ordering = ["-centrality_score"]
 
+    def __str__(self):
+        return f"stats for narrator {self.narrator_id}"
+
 
 class BookGradeStats(models.Model):
     """Grade distribution per book, precomputed for the Grading Explorer."""
@@ -47,3 +50,6 @@ class BookGradeStats(models.Model):
     daif = models.IntegerField(default=0)
     maudu = models.IntegerField(default=0)
     unknown = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"grade stats for {self.book_id}"

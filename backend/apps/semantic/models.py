@@ -32,3 +32,6 @@ class HadithTopic(models.Model):
     class Meta:
         unique_together = ("hadith", "topic")
         ordering = ["-relevance"]
+
+    def __str__(self):
+        return f"{self.hadith_id} @ {self.topic_id} ({self.relevance:.2f})"
