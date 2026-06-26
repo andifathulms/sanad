@@ -62,7 +62,9 @@ class NarratorSearchView(ListAPIView):
             qs = qs.filter(name_arabic__icontains=q) | qs.filter(
                 name_transliteration__icontains=q
             )
-        return qs
+        # Surface the most prominent narrators first so high-signal names rank above
+        # rare/noisy single-appearance extractions.
+        return qs.order_by("-total_hadiths", "-centrality_score")
 
 
 class HadithSanadView(APIView):
