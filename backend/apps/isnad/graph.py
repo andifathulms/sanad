@@ -56,12 +56,27 @@ def get_narrator_subgraph(narrator_id: int, depth: int = 2) -> dict:
     return _to_flow_payload(graph.subgraph(ego.nodes))
 
 
+# Above this node count, exact betweenness (O(V·E)) is impractical — sample instead.
+_BETWEENNESS_EXACT_MAX = 2000
+_BETWEENNESS_SAMPLE_K = 600
+
+
 def compute_centrality() -> dict[int, float]:
-    """Betweenness centrality for all narrators (heavy — Celery only)."""
+    """Betweenness centrality for all narrators (heavy — Celery only).
+
+    For large corpora we approximate with k pivot nodes; exact computation on tens of
+    thousands of narrators would take hours. The ranking it produces is stable enough
+    to surface hub narrators.
+    """
     graph = build_narrator_graph()
-    if graph.number_of_nodes() == 0:
+    n = graph.number_of_nodes()
+    if n == 0:
         return {}
-    return nx.betweenness_centrality(graph, weight="weight")
+    if n <= _BETWEENNESS_EXACT_MAX:
+        return nx.betweenness_centrality(graph, weight="weight")
+    k = min(_BETWEENNESS_SAMPLE_K, n)
+    # seed is fixed (no Math.random equivalent needed) for reproducibility
+    return nx.betweenness_centrality(graph, k=k, weight="weight", seed=42)
 
 
 def get_hadith_chain_graph(hadith_id: int) -> dict:
