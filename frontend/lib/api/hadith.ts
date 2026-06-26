@@ -9,7 +9,9 @@ import type {
   SanadResponse,
 } from "./types";
 
-export const getBooks = () => api<Book[]>("/books/");
+// The list endpoint is DRF-paginated; unwrap to the books array.
+export const getBooks = () =>
+  api<Paginated<Book>>("/books/", { params: { page: 1 } }).then((r) => r.results);
 
 export const getBook = (slug: string) => api<Book>(`/books/${slug}/`);
 
