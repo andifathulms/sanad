@@ -63,10 +63,16 @@ BOOK_META = {
     "nasai": ("سنن النسائي", "Sunan an-Nasa'i", "Sunan an-Nasa'i", "al-Nasa'i", "sunan"),
     "ibnmajah": ("سنن ابن ماجه", "Sunan Ibn Majah", "Sunan Ibnu Majah", "Ibn Majah", "sunan"),
     "malik": ("موطأ مالك", "Muwatta Malik", "Muwatta Malik", "Imam Malik", "muwatta"),
-    "riyadussalihin": ("رياض الصالحين", "Riyad as-Salihin", "Riyadhus Shalihin", "al-Nawawi", "other"),
+    "nawawi": ("الأربعون النووية", "An-Nawawi's 40 Hadith", "Hadits Arba'in Nawawi", "Imam an-Nawawi", "other"),
+    "qudsi": ("الأربعون القدسية", "40 Hadith Qudsi", "Hadits Qudsi", "Various", "other"),
 }
 
 CDN = "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1"
+
+# Our clean slug -> fawazahmed0 edition key (where they differ).
+# NOTE: fawazahmed0 does NOT carry Riyad as-Salihin (PRD open question #5). Its
+# `nawawi` edition is An-Nawawi's Forty Hadith and `qudsi` is the Forty Hadith Qudsi.
+EDITION_KEY: dict[str, str] = {}
 
 
 class Command(BaseCommand):
@@ -92,8 +98,9 @@ class Command(BaseCommand):
         name_ar, name_en, name_id, author, ctype = BOOK_META[slug]
         self.stdout.write(f"→ {name_en} ({slug})")
 
-        ar = self._edition(slug, "ara-" + slug)
-        en = self._edition(slug, "eng-" + slug)
+        ekey = EDITION_KEY.get(slug, slug)
+        ar = self._edition(slug, "ara-" + ekey)
+        en = self._edition(slug, "eng-" + ekey)
         en_by_no = {h["hadithnumber"]: h for h in en.get("hadiths", [])}
         ar_hadiths = ar.get("hadiths", [])
         if limit:

@@ -164,9 +164,10 @@ CELERY_TASK_ROUTES = {
 HADITH_SOURCES = {
     "fawazahmed0": {
         "sqlite_url": "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/",
+        # fawazahmed0 lacks Riyad as-Salihin; it ships An-Nawawi's 40 + 40 Qudsi instead.
         "books": [
             "bukhari", "muslim", "abudawud", "tirmidhi",
-            "nasai", "ibnmajah", "malik", "riyadussalihin",
+            "nasai", "ibnmajah", "malik", "nawawi", "qudsi",
         ],
     },
     "gadingnst": {
