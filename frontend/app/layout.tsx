@@ -22,11 +22,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <header className="border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <nav className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="font-crimson text-2xl font-semibold text-amber-node">
               سند <span className="text-ivory">Sanad</span>
             </Link>
-            <div className="flex gap-6 text-sm text-ivory/80">
+            <div className="-mx-1 flex flex-wrap gap-x-4 gap-y-2 px-1 text-sm text-ivory/80">
               <Link href="/reader" className="hover:text-amber-node">Reader</Link>
               <Link href="/search" className="hover:text-amber-node">Search</Link>
               <Link href="/narrator" className="hover:text-amber-node">Rijal</Link>
