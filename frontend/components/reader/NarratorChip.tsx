@@ -1,26 +1,14 @@
 import Link from "next/link";
-import type { Narrator, Reliability } from "@/lib/api/types";
+import type { Narrator } from "@/lib/api/types";
+import {
+  RELIABILITY_ABBR,
+  RELIABILITY_COLORS,
+  RELIABILITY_LABELS,
+  isAssessed,
+} from "@/lib/grading";
 
-export const RELIABILITY_COLORS: Record<Reliability, string> = {
-  thiqah: "#27AE60",
-  saduq: "#F39C12",
-  daif: "#E74C3C",
-  majhul: "#7F8C8D",
-  matruk: "#8E44AD",
-  unknown: "#95A5A6",
-};
-
-export const RELIABILITY_LABELS: Record<Reliability, string> = {
-  thiqah: "Thiqah (Reliable)",
-  saduq: "Saduq (Truthful)",
-  daif: "Da'if (Weak)",
-  majhul: "Majhul (Unknown narrator)",
-  matruk: "Matruk (Abandoned)",
-  unknown: "Not yet assessed",
-};
-
-/** "unknown" is the absence of an assessment in our data — not a scholarly verdict. */
-export const isAssessed = (r: Reliability) => r !== "unknown";
+// Re-exported for components that already import the palette from here.
+export { RELIABILITY_COLORS, RELIABILITY_LABELS, isAssessed };
 
 /**
  * A clickable narrator in a chain: Arabic name + a colored reliability dot.
@@ -34,7 +22,13 @@ export function NarratorChip({ narrator }: { narrator: Narrator }) {
       title={`${narrator.name_transliteration} — ${RELIABILITY_LABELS[narrator.reliability_grade]}`}
       className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 hover:border-amber-node/50"
     >
-      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+      <span
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-bold leading-none text-indigo-deep"
+        style={{ backgroundColor: color }}
+        aria-hidden
+      >
+        {RELIABILITY_ABBR[narrator.reliability_grade]}
+      </span>
       <span className="flex flex-col leading-tight">
         <span className="arabic text-base">{narrator.name_arabic}</span>
         {narrator.name_transliteration && (

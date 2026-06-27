@@ -14,22 +14,23 @@ const config: Config = {
           navy: "#16213E", // secondary surfaces
           scholar: "#0F3460", // primary accent
         },
-        amber: { node: "#E2B96F" }, // Thiqah / reliable narrator nodes
-        crimson: { node: "#C0392B" }, // Da'if narrator nodes
+        amber: { node: "#E2B96F" }, // brand accent (gold)
+        crimson: { node: "#C0392B" }, // reserved alert red
         slate: { node: "#7F8C8D" }, // Majhul / unknown
         ivory: "#F8F4EE", // light mode background
-        // Grading color system (consistent app-wide)
+        // Grading colour system (single source of truth: lib/grading.ts).
+        // Semantics: green=authentic, teal=acceptable, amber=weak, purple=fabricated.
         grade: {
           sahih: "#27AE60",
-          hasan: "#F39C12",
-          daif: "#E74C3C",
+          hasan: "#2D9C8F",
+          daif: "#E08A2E",
           maudu: "#8E44AD",
           unknown: "#7F8C8D",
         },
         reliability: {
           thiqah: "#27AE60",
-          saduq: "#F39C12",
-          daif: "#E74C3C",
+          saduq: "#2D9C8F",
+          daif: "#E08A2E",
           majhul: "#7F8C8D",
           matruk: "#8E44AD",
           unknown: "#95A5A6",

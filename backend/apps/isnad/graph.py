@@ -9,11 +9,13 @@ import networkx as nx
 
 from apps.isnad.models import HadithNarrator, Narrator, NarratorLink
 
-# Mirror of the frontend RELIABILITY_COLORS so the API can ship colors directly.
+# Mirror of the frontend RELIABILITY_COLORS (lib/grading.ts) so the API can ship
+# colors directly. Semantics: green=reliable, teal=truthful, amber=weak,
+# purple=abandoned, slate=unassessed.
 RELIABILITY_COLORS = {
     "thiqah": "#27AE60",
-    "saduq": "#F39C12",
-    "daif": "#E74C3C",
+    "saduq": "#2D9C8F",
+    "daif": "#E08A2E",
     "majhul": "#7F8C8D",
     "matruk": "#8E44AD",
     "unknown": "#95A5A6",

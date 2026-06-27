@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react";
 import { GlobalNetwork } from "@/components/isnad/GlobalNetwork";
 import { getGlobalNetwork, type NetworkResponse } from "@/lib/api/network";
+import { RELIABILITY_COLORS } from "@/lib/grading";
 
 const GENERATIONS = ["", "sahabi", "tabii", "taba_tabii", "later"];
 const RELIABILITIES = ["", "thiqah", "saduq", "daif", "majhul", "unknown"];
 const LEGEND: [string, string][] = [
-  ["#27AE60", "Thiqah"],
-  ["#F39C12", "Saduq"],
-  ["#E74C3C", "Da'if"],
-  ["#7F8C8D", "Majhul"],
-  ["#95A5A6", "Unknown"],
+  [RELIABILITY_COLORS.thiqah, "Thiqah"],
+  [RELIABILITY_COLORS.saduq, "Saduq"],
+  [RELIABILITY_COLORS.daif, "Da'if"],
+  [RELIABILITY_COLORS.majhul, "Majhul"],
+  [RELIABILITY_COLORS.unknown, "Unknown"],
 ];
 
 export default function GlobalNetworkPage() {
