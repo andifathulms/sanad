@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GradeBar } from "@/components/analytics/GradeBar";
+import { CollectionsCard } from "@/components/dashboard/CollectionsCard";
+import { RecentReadingCard } from "@/components/dashboard/RecentReadingCard";
 import { listBookmarks, me, type Bookmark } from "@/lib/api/auth";
 import { getCorpusOverview } from "@/lib/api/analytics";
 import type { CorpusOverview, Grade, GradeDistribution } from "@/lib/api/types";
@@ -97,6 +99,9 @@ export default function DashboardPage() {
           </ul>
         )}
       </div>
+
+      <CollectionsCard />
+      <RecentReadingCard />
     </section>
   );
 }

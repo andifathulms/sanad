@@ -4,6 +4,7 @@ import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { SanadInline } from "@/components/reader/SanadInline";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
+import { RecordHistory } from "@/components/reader/RecordHistory";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +29,7 @@ export default async function HadithDetailPage({
 
   return (
     <article className="space-y-6">
+      <RecordHistory hadithId={hadith.id} />
       <Link href={`/reader/${params.book}`} className="text-sm text-ivory/60 hover:text-amber-node">
         ← {hadith.book.name_en}
       </Link>

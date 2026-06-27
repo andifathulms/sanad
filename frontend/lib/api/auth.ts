@@ -1,5 +1,6 @@
 /** Browser-side auth + authenticated mutations against the same-origin /api proxy. */
 import { getAccessToken } from "@/lib/auth/token";
+import type { HadithListItem } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "/api/v1";
 
@@ -71,3 +72,52 @@ export const addBookmark = (hadithId: number, note = "") =>
 
 export const removeBookmark = (bookmarkId: number) =>
   request<void>(`/bookmarks/${bookmarkId}/`, { method: "DELETE" });
+
+// --- Reading history ---
+export interface ReadingHistoryEntry {
+  id: number;
+  hadith: number;
+  hadith_detail: HadithListItem;
+  read_at: string;
+}
+
+export const listHistory = () =>
+  request<{ results: ReadingHistoryEntry[] }>("/history/").then((r) => r.results);
+
+/** Best-effort: record that the current user opened a hadith. */
+export const recordHistory = (hadithId: number) =>
+  request<ReadingHistoryEntry>("/history/", {
+    method: "POST",
+    body: JSON.stringify({ hadith: hadithId }),
+  });
+
+// --- Collections ---
+export interface CollectionItem {
+  id: number;
+  hadith: number;
+  hadith_detail: HadithListItem;
+  position: number;
+  added_at: string;
+}
+
+export interface Collection {
+  id: number;
+  name: string;
+  description: string;
+  is_public: boolean;
+  items: CollectionItem[];
+  created_at: string;
+}
+
+export const listCollections = () =>
+  request<{ results: Collection[] }>("/collections/").then((r) => r.results);
+
+export const createCollection = (data: {
+  name: string;
+  description?: string;
+  is_public?: boolean;
+}) =>
+  request<Collection>("/collections/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
