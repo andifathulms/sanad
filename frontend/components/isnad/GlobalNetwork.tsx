@@ -2,6 +2,7 @@
 
 import {
   forceCenter,
+  forceCollide,
   forceLink,
   forceManyBody,
   forceSimulation,
@@ -65,19 +66,24 @@ export function GlobalNetwork({
       .map((e) => ({ source: byId.get(e.source), target: byId.get(e.target) }))
       .filter((l) => l.source && l.target) as SimLink[];
 
-    const radius = (n: NetworkNode) => 3 + Math.sqrt(n.hadiths || 1) * 0.6;
+    // Capped sqrt scale: prominent narrators read larger, but no single node
+    // balloons into a screen-filling blob that swallows its neighbours.
+    const radius = (n: NetworkNode) => clamp(2.5 + Math.sqrt(n.hadiths || 1) * 0.5, 3, 22);
 
     const sim: Simulation<NetworkNode, SimLink> = forceSimulation(simNodes)
       .force(
         "link",
         forceLink<NetworkNode, SimLink>(simLinks)
           .id((d) => d.id)
-          .distance(40)
-          .strength(0.2),
+          .distance(60)
+          .strength(0.15),
       )
-      .force("charge", forceManyBody().strength(-60))
+      .force("charge", forceManyBody().strength(-120))
+      // Hard collision so circles push apart instead of stacking on top of each
+      // other — the single biggest readability win when zoomed in.
+      .force("collide", forceCollide<NetworkNode>().radius((n) => radius(n) + 4).iterations(2))
       .force("center", forceCenter(width / 2, height / 2))
-      .alphaDecay(0.05);
+      .alphaDecay(0.04);
 
     function draw() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -101,16 +107,25 @@ export function GlobalNetwork({
         ctx.fill();
       }
 
-      // Reveal Latin labels when zoomed in enough to be legible.
-      if (scale >= 1.8) {
-        ctx.fillStyle = "rgba(248,244,238,0.8)";
-        ctx.font = `${11 / scale}px Inter, sans-serif`;
-        ctx.textAlign = "left";
-        ctx.textBaseline = "middle";
-        for (const n of simNodes) {
-          const name = n.label_latin || n.label;
-          if (name) ctx.fillText(name, (n.x ?? 0) + radius(n) + 2 / scale, n.y ?? 0);
-        }
+      // Reveal Latin labels once they're legible. Larger (more central) nodes get
+      // their label sooner; a dark halo keeps text readable over any node colour.
+      ctx.font = `${11 / scale}px Inter, sans-serif`;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.lineWidth = 3 / scale;
+      ctx.strokeStyle = "rgba(26,26,46,0.85)";
+      for (const n of simNodes) {
+        const r = radius(n);
+        // Label threshold eases as node size grows, so the network never shows
+        // every label at once (which is what made it unreadable).
+        if (scale * r < 22) continue;
+        const name = n.label_latin || n.label;
+        if (!name) continue;
+        const lx = (n.x ?? 0) + r + 2 / scale;
+        const ly = n.y ?? 0;
+        ctx.strokeText(name, lx, ly);
+        ctx.fillStyle = "rgba(248,244,238,0.9)";
+        ctx.fillText(name, lx, ly);
       }
     }
 
