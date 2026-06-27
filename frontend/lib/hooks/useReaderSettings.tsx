@@ -10,6 +10,7 @@ import {
 } from "react";
 
 export type MatnTheme = "night" | "sepia" | "paper";
+export type TranslationLang = "en" | "id" | "both";
 
 export interface ReaderSettings {
   /** Arabic matn scale multiplier (1 = default). */
@@ -20,6 +21,8 @@ export interface ReaderSettings {
   matnTheme: MatnTheme;
   /** Append classical honorifics (RA / rh) to narrator names. */
   showHonorifics: boolean;
+  /** Which translation(s) to show alongside the Arabic. */
+  translationLang: TranslationLang;
 }
 
 interface ReaderSettingsContext extends ReaderSettings {
@@ -27,6 +30,7 @@ interface ReaderSettingsContext extends ReaderSettings {
   toggleTashkeel: () => void;
   setMatnTheme: (t: MatnTheme) => void;
   toggleHonorifics: () => void;
+  setTranslationLang: (l: TranslationLang) => void;
 }
 
 const DEFAULTS: ReaderSettings = {
@@ -34,6 +38,7 @@ const DEFAULTS: ReaderSettings = {
   showTashkeel: true,
   matnTheme: "night",
   showHonorifics: true,
+  translationLang: "both",
 };
 
 export const ARABIC_SCALES = [0.85, 1, 1.15, 1.3, 1.5];
@@ -74,6 +79,7 @@ export function ReaderSettingsProvider({ children }: { children: React.ReactNode
       toggleTashkeel: () => update({ showTashkeel: !settings.showTashkeel }),
       setMatnTheme: (t) => update({ matnTheme: t }),
       toggleHonorifics: () => update({ showHonorifics: !settings.showHonorifics }),
+      setTranslationLang: (l) => update({ translationLang: l }),
     }),
     [settings, update],
   );

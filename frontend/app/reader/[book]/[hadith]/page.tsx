@@ -6,6 +6,7 @@ import { GradeBadge } from "@/components/reader/GradeBadge";
 import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGradings";
 import { SanadInline } from "@/components/reader/SanadInline";
 import { MatnDisplay } from "@/components/reader/MatnDisplay";
+import { Translations } from "@/components/reader/Translations";
 import { ChainProvenance } from "@/components/isnad/ChainProvenance";
 import { QuranRefs } from "@/components/reader/QuranRefs";
 import { ShareHadithCard } from "@/components/reader/ShareHadithCard";
@@ -109,22 +110,7 @@ export default async function HadithDetailPage({
 
       <ScholarGradings gradings={hadith.gradings} />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {hadith.translation_en && (
-          <div className="surface p-5">
-            <h3 className="mb-2 font-crimson text-amber-node">English</h3>
-            <p className="text-ivory/85">{hadith.translation_en}</p>
-          </div>
-        )}
-        <div className="surface p-5">
-          <h3 className="mb-2 font-crimson text-amber-node">Indonesian</h3>
-          {hadith.translation_id ? (
-            <p className="text-ivory/85">{hadith.translation_id}</p>
-          ) : (
-            <p className="text-sm text-ivory/40">Indonesian translation not yet available.</p>
-          )}
-        </div>
-      </div>
+      <Translations en={hadith.translation_en} id={hadith.translation_id} />
 
       <div className="surface space-y-4 p-6">
         <SanadInline chain={sanad.chain} hadithId={hadith.id} />

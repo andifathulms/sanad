@@ -5,12 +5,19 @@ import {
   ARABIC_SCALES,
   useReaderSettings,
   type MatnTheme,
+  type TranslationLang,
 } from "@/lib/hooks/useReaderSettings";
 
 const THEMES: { key: MatnTheme; label: string }[] = [
   { key: "night", label: "Night" },
   { key: "sepia", label: "Sepia" },
   { key: "paper", label: "Paper" },
+];
+
+const LANGS: { key: TranslationLang; label: string }[] = [
+  { key: "en", label: "EN" },
+  { key: "id", label: "ID" },
+  { key: "both", label: "Both" },
 ];
 
 /** Header gear opening the global reading preferences (persisted to localStorage). */
@@ -93,6 +100,27 @@ export function ReaderSettingsMenu() {
                   }`}
                 >
                   {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Translation language */}
+          <div className="flex items-center justify-between">
+            <span className="text-ivory/70">Translation</span>
+            <div className="flex gap-1">
+              {LANGS.map((l) => (
+                <button
+                  key={l.key}
+                  type="button"
+                  onClick={() => s.setTranslationLang(l.key)}
+                  className={`rounded-md border px-2 py-1 text-xs ${
+                    s.translationLang === l.key
+                      ? "border-amber-node text-amber-node"
+                      : "border-white/10 text-ivory/70"
+                  }`}
+                >
+                  {l.label}
                 </button>
               ))}
             </div>
