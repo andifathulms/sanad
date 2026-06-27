@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { RELIABILITY_COLORS } from "@/components/reader/NarratorChip";
+import { RELIABILITY_COLORS } from "@/lib/grading";
 import { searchNarrators } from "@/lib/api/isnad";
 import { getNarratorPath, type PathNarrator } from "@/lib/api/network";
 import type { Narrator } from "@/lib/api/types";

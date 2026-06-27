@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RELIABILITY_COLORS, RELIABILITY_LABELS } from "@/components/reader/NarratorChip";
+import { RELIABILITY_COLORS, RELIABILITY_LABELS } from "@/lib/grading";
 import type { Narrator } from "@/lib/api/types";
 
 const GENERATION_LABELS: Record<string, string> = {

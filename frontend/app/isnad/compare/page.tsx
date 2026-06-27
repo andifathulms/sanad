@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { RELIABILITY_COLORS } from "@/components/reader/NarratorChip";
+import { RELIABILITY_COLORS } from "@/lib/grading";
 import { getSanad } from "@/lib/api/hadith";
 import { compareIsnad, type CompareResult } from "@/lib/api/isnad";
 import type { ChainNarrator } from "@/lib/api/types";

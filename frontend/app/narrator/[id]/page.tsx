@@ -1,10 +1,7 @@
 import { getNarrator } from "@/lib/api/hadith";
 import { NarratorTabs } from "@/components/isnad/NarratorTabs";
-import {
-  RELIABILITY_COLORS,
-  RELIABILITY_LABELS,
-  isAssessed,
-} from "@/components/reader/NarratorChip";
+import { HonorificTag } from "@/components/reader/HonorificTag";
+import { RELIABILITY_COLORS, RELIABILITY_LABELS, isAssessed } from "@/lib/grading";
 import type { Narrator } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +29,10 @@ export default async function NarratorPage({ params }: { params: { id: string } 
     <section className="space-y-6">
       <header className="surface p-6">
         <p className="arabic text-4xl text-amber-node">{narrator.name_arabic}</p>
-        <h1 className="mt-2 font-crimson text-2xl">{narrator.name_transliteration}</h1>
+        <h1 className="mt-2 font-crimson text-2xl">
+          {narrator.name_transliteration}{" "}
+          <HonorificTag generation={narrator.generation} className="text-lg" />
+        </h1>
         {narrator.kunya && <p className="text-ivory/60">{narrator.kunya}</p>}
         <div className="mt-4 flex items-center gap-2">
           <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
