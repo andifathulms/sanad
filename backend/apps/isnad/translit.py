@@ -99,7 +99,10 @@ _TOKENS = {
     "عفان": "Affan", "حبان": "Habban", "الاحوص": "al-Ahwas",
     "سماك": "Simak", "الحضرمي": "al-Hadrami", "كريب": "Kurayb",
     "قبيصة": "Qabisa", "حجر": "Hujr", "قتيبة": "Qutayba",
-    "اسحق": "Ishaq",
+    "اسحق": "Ishaq", "شهاب": "Shihab", "شداد": "Shaddad",
+    "هريرة": "Hurayra", "شيبة": "Shayba", "عبيدالله": "Ubayd Allah",
+    "الرزاق": "al-Razzaq", "حنبل": "Hanbal", "راشد": "Rashid",
+    "ميمون": "Maymun", "زياد": "Ziyad", "عطاء": "Ata", "دينار": "Dinar",
 }
 
 
