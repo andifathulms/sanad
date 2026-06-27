@@ -81,3 +81,66 @@ def extract_chain(matn_arabic: str) -> list[str]:
 def dedup_key(name: str) -> str:
     """Normalized key for collapsing spelling variants of the same narrator."""
     return normalize_arabic(name)
+
+
+# --- Post-hoc name refinement (cleanup of noisy extracted spans) -------------
+#
+# Some extracted "names" captured the opening word(s) of the matn (e.g. the verb
+# كان) or are pure matn fragments. We trim a name at the first matn-word and then
+# judge whether a real name remains. Tokens are compared whole and normalized —
+# never as substrings (التيمي must not match التي).
+
+def _tok(s: str) -> str:
+    return re.sub(r"[إأآٱ]", "ا", strip_tashkeel(s)).replace("ى", "ي").replace("ة", "ه")
+
+# Verbs / pronouns / particles that mark the matn beginning — never part of a name.
+_STOPWORDS = {
+    _tok(w) for w in (
+        "كان", "كانت", "رأى", "رأيت", "رأت", "رأوا", "خرج", "خرجت", "قال", "قالت",
+        "قالوا", "يقول", "تقول", "قلت", "قلنا", "جاء", "جاءت", "أتى", "اتى", "دخل",
+        "دخلت", "ذهب", "بينا", "بينما", "إذا", "اذا", "لما", "كنت", "كنا", "فقال",
+        "فقالت", "وقال", "وقالت", "يا", "هذا", "هذه", "ذلك", "تلك", "الذي", "التي",
+        "الذين", "ما", "من", "حين", "يوم", "الناس", "أنه", "انه", "أنها", "انها",
+        "أني", "اني", "أنا", "انا", "نحن", "هو", "هي", "هم", "عند", "فلما", "ثم",
+        "حتى", "وهو", "وهي", "مر", "مرت", "أقبل", "اقبل", "سئل", "سأل", "سال",
+        "نهى", "أمر", "امر", "قام", "قعد", "بعث", "كتب", "نزل", "نزلت",
+    )
+}
+
+# Function words that can begin a junk span but are not names. A span made *only*
+# of these (plus connective particles) is not a real narrator.
+_NONNAME = {
+    _tok(w) for w in (
+        "آخر", "اخر", "أول", "اول", "بعض", "كل", "منهم", "منها", "منهما", "أهل",
+        "اهل", "بني", "بنو", "ذات", "ذو", "ناس", "قوم", "رجل", "امرأة", "امراه",
+        "الرجل", "المرأة", "المراه", "أبيه", "ابيه", "جده", "أمه", "امه", "عمه",
+        "خاله", "أبيها", "ابيها", "أصحاب", "اصحاب",
+    )
+}
+
+# Connective particles that join name parts but are not standalone names.
+_PARTICLES = {_tok(w) for w in ("بن", "ابن", "أبي", "ابي", "أبو", "ابو", "أب", "اب", "أم", "ام")}
+
+
+def refine_name(name: str) -> str:
+    """Trim a name at the first matn-word; returns the leading real-name part."""
+    out: list[str] = []
+    for word in name.split():
+        if _tok(word) in _STOPWORDS:
+            break
+        out.append(word)
+    return " ".join(out).strip()
+
+
+def is_plausible_name(name: str) -> bool:
+    """True if `name` looks like an actual narrator name (not a matn fragment)."""
+    toks = name.split()
+    if not toks or len(toks) > 12:
+        return False
+    norm = [_tok(t) for t in toks]
+    if any(t in _STOPWORDS for t in norm):
+        return False
+    # Needs at least one real name token (not a function word / bare particle).
+    return any(
+        len(t) >= 2 and t not in _NONNAME and t not in _PARTICLES for t in norm
+    )
