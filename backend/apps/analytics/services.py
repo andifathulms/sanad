@@ -101,8 +101,11 @@ def get_grade_distribution(book_slug: str | None = None) -> dict:
 
 def get_narrator_centrality(top_n: int = 20) -> list[dict]:
     """Top N narrators by betweenness centrality (precomputed)."""
+    from apps.isnad.anonymous import SENTINEL_NAME_AR
+
     rows = (
         NarratorStats.objects.select_related("narrator")
+        .exclude(narrator__name_arabic=SENTINEL_NAME_AR)
         .order_by("-centrality_score")[:top_n]
     )
     return [

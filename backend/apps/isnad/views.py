@@ -126,7 +126,9 @@ class GlobalNetworkView(APIView):
         params = request.query_params
         limit = min(int(params.get("limit", 300)), 1000)
 
-        narrators = Narrator.objects.all()
+        from apps.isnad.anonymous import SENTINEL_NAME_AR
+
+        narrators = Narrator.objects.exclude(name_arabic=SENTINEL_NAME_AR)
         if generation := params.get("generation"):
             narrators = narrators.filter(generation=generation)
         if reliability := params.get("reliability"):
