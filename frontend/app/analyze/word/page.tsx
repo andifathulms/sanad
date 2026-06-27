@@ -5,25 +5,43 @@ import { useState } from "react";
 import { getWordFrequency } from "@/lib/api/analytics";
 import type { WordFrequency } from "@/lib/api/types";
 
+/** Common starting points so users aren't faced with a blank Arabic box. */
+const SUGGESTIONS: { ar: string; en: string }[] = [
+  { ar: "الله", en: "Allah" },
+  { ar: "الصلاة", en: "prayer" },
+  { ar: "النية", en: "intention" },
+  { ar: "العلم", en: "knowledge" },
+  { ar: "الصبر", en: "patience" },
+  { ar: "الجنة", en: "paradise" },
+  { ar: "النار", en: "the Fire" },
+  { ar: "الإيمان", en: "faith" },
+  { ar: "الزكاة", en: "zakat" },
+  { ar: "الصوم", en: "fasting" },
+];
+
 export default function WordFrequencyPage() {
   const [word, setWord] = useState("");
   const [result, setResult] = useState<WordFrequency | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const w = word.trim();
-    if (!w) return;
+  async function runLookup(w: string) {
+    const term = w.trim();
+    if (!term) return;
     setLoading(true);
     setError(false);
     try {
-      setResult(await getWordFrequency(w));
+      setResult(await getWordFrequency(term));
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    runLookup(word);
   }
 
   const maxCount = result
@@ -55,6 +73,24 @@ export default function WordFrequencyPage() {
           Count
         </button>
       </form>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-ivory/40">Try:</span>
+        {SUGGESTIONS.map((s) => (
+          <button
+            key={s.ar}
+            type="button"
+            onClick={() => {
+              setWord(s.ar);
+              runLookup(s.ar);
+            }}
+            className="group flex items-center gap-1.5 rounded-full border border-white/10 bg-indigo-navy px-3 py-1 hover:border-amber-node/50"
+          >
+            <span className="arabic text-base">{s.ar}</span>
+            <span className="text-xs text-ivory/40 group-hover:text-ivory/60">{s.en}</span>
+          </button>
+        ))}
+      </div>
 
       {loading && <p className="text-ivory/60">Counting…</p>}
       {error && (
