@@ -59,6 +59,38 @@ class HadithViewSet(viewsets.ReadOnlyModelViewSet):
     def parallels(self, request, pk=None):
         return Response(find_similar_hadiths(int(pk), threshold=0.0))
 
+    @action(detail=True, methods=["get"])
+    def neighbors(self, request, pk=None):
+        """Previous/next hadith in book reading order (by number_in_book).
+
+        Powers continuous reading — flowing hadith-to-hadith and across chapter
+        boundaries within the same collection.
+        """
+        hadith = self.get_object()
+        in_book = Hadith.objects.filter(book_id=hadith.book_id)
+        prev = (
+            in_book.filter(number_in_book__lt=hadith.number_in_book)
+            .order_by("-number_in_book")
+            .first()
+        )
+        nxt = (
+            in_book.filter(number_in_book__gt=hadith.number_in_book)
+            .order_by("number_in_book")
+            .first()
+        )
+
+        def ref(h):
+            if h is None:
+                return None
+            return {
+                "id": h.id,
+                "global_reference": h.global_reference,
+                "number_in_book": h.number_in_book,
+                "book_slug": h.book.slug,
+            }
+
+        return Response({"prev": ref(prev), "next": ref(nxt)})
+
     @action(detail=True, methods=["get"], url_path="quran-refs")
     def quran_refs(self, request, pk=None):
         from .serializers import QuranRefSerializer

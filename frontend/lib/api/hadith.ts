@@ -26,6 +26,18 @@ export const getBookHadiths = (
 export const getHadith = (id: number | string) =>
   api<HadithDetail>(`/hadiths/${id}/`);
 
+export interface HadithNeighborRef {
+  id: number;
+  global_reference: string;
+  number_in_book: number;
+  book_slug: string;
+}
+
+export const getHadithNeighbors = (id: number | string) =>
+  api<{ prev: HadithNeighborRef | null; next: HadithNeighborRef | null }>(
+    `/hadiths/${id}/neighbors/`,
+  );
+
 export const getSanad = (id: number | string) =>
   api<SanadResponse>(`/hadiths/${id}/sanad/`);
 

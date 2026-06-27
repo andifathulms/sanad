@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getHadith, getSanad } from "@/lib/api/hadith";
+import { getHadith, getHadithNeighbors, getSanad, type HadithNeighborRef } from "@/lib/api/hadith";
+import { HadithPager } from "@/components/reader/HadithPager";
 import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGradings";
@@ -21,6 +22,10 @@ export default async function HadithDetailPage({
 }) {
   let hadith: HadithDetail;
   let sanad: SanadResponse = { chain: [], graph_data: { nodes: [], edges: [] } };
+  let neighbors: { prev: HadithNeighborRef | null; next: HadithNeighborRef | null } = {
+    prev: null,
+    next: null,
+  };
   try {
     hadith = await getHadith(params.hadith);
     try {
@@ -28,16 +33,47 @@ export default async function HadithDetailPage({
     } catch {
       /* chain optional */
     }
+    try {
+      neighbors = await getHadithNeighbors(params.hadith);
+    } catch {
+      /* neighbors optional */
+    }
   } catch {
     return <p className="surface p-4">Hadith not found or API unavailable.</p>;
   }
 
+  const pagerTarget = (n: HadithNeighborRef | null) =>
+    n ? { href: `/reader/${n.book_slug}/${n.id}`, label: n.global_reference } : null;
+
   return (
     <article className="space-y-6">
       <RecordHistory hadithId={hadith.id} />
-      <Link href={`/reader/${params.book}`} className="text-sm text-ivory/60 hover:text-amber-node">
-        ← {hadith.book.name_en}
-      </Link>
+
+      <nav className="flex flex-wrap items-center gap-1.5 text-sm text-ivory/50" aria-label="Breadcrumb">
+        <Link href="/reader" className="hover:text-amber-node">Reader</Link>
+        <span className="text-ivory/25">/</span>
+        <Link href={`/reader/${params.book}`} className="hover:text-amber-node">
+          {hadith.book.name_en}
+        </Link>
+        {hadith.chapter && (
+          <>
+            <span className="text-ivory/25">/</span>
+            <Link
+              href={`/reader/${params.book}?chapter=${hadith.chapter.number}`}
+              className="hover:text-amber-node"
+            >
+              {hadith.chapter.title_en}
+            </Link>
+          </>
+        )}
+        <span className="text-ivory/25">/</span>
+        <span className="text-ivory/70">
+          Hadith {hadith.number_in_book.toLocaleString()} of{" "}
+          {hadith.book.total_hadiths.toLocaleString()}
+        </span>
+      </nav>
+
+      <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
 
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -113,6 +149,8 @@ export default async function HadithDetailPage({
           {hadith.grade_notes}
         </p>
       )}
+
+      <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
     </article>
   );
 }
