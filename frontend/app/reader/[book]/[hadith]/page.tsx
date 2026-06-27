@@ -3,6 +3,7 @@ import { getHadith, getSanad } from "@/lib/api/hadith";
 import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { SanadInline } from "@/components/reader/SanadInline";
+import { ChainProvenance } from "@/components/isnad/ChainProvenance";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import { RecordHistory } from "@/components/reader/RecordHistory";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
@@ -80,8 +81,9 @@ export default async function HadithDetailPage({
         </div>
       </div>
 
-      <div className="surface p-6">
+      <div className="surface space-y-4 p-6">
         <SanadInline chain={sanad.chain} hadithId={hadith.id} />
+        <ChainProvenance chainType={hadith.chain_type} />
       </div>
 
       <ParallelNarrations hadithId={hadith.id} />
