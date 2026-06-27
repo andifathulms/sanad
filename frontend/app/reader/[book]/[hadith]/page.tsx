@@ -175,7 +175,12 @@ export default async function HadithDetailPage({
 
       <MatnDisplay arabic={hadith.matn_arabic} baseRem={1.875} />
 
-      <Translations en={hadith.translation_en} id={hadith.translation_id} />
+      <Translations
+        en={hadith.translation_en}
+        id={hadith.translation_id}
+        enSource={hadith.translation_en_source}
+        idSource={hadith.translation_id_source}
+      />
 
       {hadith.grade_notes && (
         <p className="max-w-[68ch] text-sm text-ivory/60">

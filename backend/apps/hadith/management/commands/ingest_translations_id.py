@@ -64,6 +64,7 @@ class Command(BaseCommand):
             if not number or not text_id:
                 continue
             updated += Hadith.objects.filter(book=book, number_in_book=number).update(
-                translation_id=text_id
+                translation_id=text_id,
+                translation_id_source="hadith.gading.dev (gadingnst)",
             )
         self.stdout.write(self.style.SUCCESS(f"  updated {updated} translations"))

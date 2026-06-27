@@ -76,6 +76,11 @@ class Hadith(models.Model):
     matn_clean = models.TextField(blank=True)  # Arabic without tashkeel (for search)
     translation_en = models.TextField(blank=True)
     translation_id = models.TextField(blank=True)
+    # Provenance of each translation — where it came from. We surface the *source*
+    # (dataset/API), never claim a translator we cannot attribute (CLAUDE.md: never
+    # assert what isn't sourced). Shown to the reader beside each translation.
+    translation_en_source = models.CharField(max_length=200, blank=True)
+    translation_id_source = models.CharField(max_length=200, blank=True)
 
     grade = models.CharField(max_length=20, choices=GRADE_CHOICES, default="unknown")
     grade_source = models.CharField(max_length=200, blank=True)  # e.g. 'Imam Bukhari'

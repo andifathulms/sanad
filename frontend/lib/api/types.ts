@@ -55,6 +55,8 @@ export interface HadithDetail extends HadithListItem {
   book: Book;
   chapter: Chapter | null;
   matn_clean: string;
+  translation_en_source: string;
+  translation_id_source: string;
   grade_notes: string;
   chain_type: string;
   source_api: string;

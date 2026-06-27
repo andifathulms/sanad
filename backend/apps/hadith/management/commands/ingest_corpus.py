@@ -139,6 +139,7 @@ class Command(BaseCommand):
                         "matn_arabic": arabic,
                         "matn_clean": normalize_arabic(arabic),
                         "translation_en": en_row.get("text", ""),
+                        "translation_en_source": "fawazahmed0 (hadith-api)" if en_row.get("text") else "",
                         "grade": grade,
                         "grade_source": grade_source,
                         "source_api": "fawazahmed0",

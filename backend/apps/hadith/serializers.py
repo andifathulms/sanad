@@ -59,6 +59,7 @@ class HadithDetailSerializer(serializers.ModelSerializer):
             "id", "global_reference", "alt_reference", "number_in_book",
             "book", "chapter",
             "matn_arabic", "matn_clean", "translation_en", "translation_id",
+            "translation_en_source", "translation_id_source",
             "grade", "grade_source", "grade_notes",
             "chain_type", "has_parallel", "source_api", "quran_refs", "gradings",
         ]

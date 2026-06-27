@@ -7,7 +7,17 @@ import { useReaderSettings } from "@/lib/hooks/useReaderSettings";
  * constrained to a comfortable reading measure (~68ch). Falls back gracefully when
  * a chosen language isn't available for this hadith — never silently blank.
  */
-export function Translations({ en, id }: { en: string; id: string }) {
+export function Translations({
+  en,
+  id,
+  enSource,
+  idSource,
+}: {
+  en: string;
+  id: string;
+  enSource?: string;
+  idSource?: string;
+}) {
   const { translationLang } = useReaderSettings();
   const showEn = translationLang === "en" || translationLang === "both";
   const showId = translationLang === "id" || translationLang === "both";
@@ -28,6 +38,9 @@ export function Translations({ en, id }: { en: string; id: string }) {
           ) : (
             <p className="text-sm text-ivory/40">English translation not yet available.</p>
           )}
+          {en && enSource && (
+            <p className="mt-2 text-xs text-ivory/40">Source: {enSource}</p>
+          )}
           {fallbackToEn && (
             <p className="mt-1 text-xs text-ivory/40">
               Indonesian not available — showing English.
@@ -42,6 +55,9 @@ export function Translations({ en, id }: { en: string; id: string }) {
             <p className="leading-relaxed text-ivory/85">{id}</p>
           ) : (
             <p className="text-sm text-ivory/40">Indonesian translation not yet available.</p>
+          )}
+          {id && idSource && (
+            <p className="mt-2 text-xs text-ivory/40">Source: {idSource}</p>
           )}
           {fallbackToId && (
             <p className="mt-1 text-xs text-ivory/40">
