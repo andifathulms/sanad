@@ -4,7 +4,14 @@ import type {
   GradeDistribution,
   MutabiShahid,
   ParallelHadith,
+  WordFrequency,
 } from "./types";
+
+/** Frequency of an Arabic word across the corpus, optionally scoped to a book. */
+export const getWordFrequency = (word: string, book?: string) =>
+  api<WordFrequency>("/analytics/word-frequency/", {
+    params: { word, book },
+  });
 
 /** Lightweight corpus-wide totals + grade breakdown for the dashboard. */
 export const getCorpusOverview = () =>

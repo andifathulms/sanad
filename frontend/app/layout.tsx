@@ -30,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/reader" className="hover:text-amber-node">Reader</Link>
               <Link href="/search" className="hover:text-amber-node">Search</Link>
               <Link href="/narrator" className="hover:text-amber-node">Rijal</Link>
+              <Link href="/analyze/word" className="hover:text-amber-node">Words</Link>
               <Link href="/analyze/grades" className="hover:text-amber-node">Grades</Link>
               <Link href="/analyze/network" className="hover:text-amber-node">Network</Link>
               <Link href="/isnad/path" className="hover:text-amber-node">Path</Link>

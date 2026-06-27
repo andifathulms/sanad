@@ -87,6 +87,13 @@ export interface CorpusOverview {
   by_grade: Partial<Record<Grade, number>>;
 }
 
+export interface WordFrequency {
+  word: string;
+  total: number;
+  per_book: { book: string; count: number }[];
+  sample_hadiths: { id: number; global_reference: string; book__slug: string }[];
+}
+
 export interface ParallelHadith {
   hadith_id: number;
   book: string;
