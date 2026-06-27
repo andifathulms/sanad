@@ -3,6 +3,7 @@ import { getHadith, getSanad } from "@/lib/api/hadith";
 import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { SanadInline } from "@/components/reader/SanadInline";
+import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +81,8 @@ export default async function HadithDetailPage({
       <div className="surface p-6">
         <SanadInline chain={sanad.chain} hadithId={hadith.id} />
       </div>
+
+      <ParallelNarrations hadithId={hadith.id} />
 
       {hadith.grade_notes && (
         <p className="text-sm text-ivory/60">

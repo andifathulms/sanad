@@ -80,6 +80,18 @@ export interface SanadResponse {
   };
 }
 
+export interface ParallelHadith {
+  hadith_id: number;
+  book: string;
+  global_reference: string;
+  similarity_score: number;
+}
+
+export interface MutabiShahid {
+  mutabi: ParallelHadith[];
+  shahid: ParallelHadith[];
+}
+
 export interface Paginated<T> {
   count: number;
   next: string | null;
