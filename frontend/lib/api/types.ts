@@ -82,6 +82,11 @@ export interface SanadResponse {
 
 export type GradeDistribution = Record<Grade, number>;
 
+export interface CorpusOverview {
+  total_hadiths: number;
+  by_grade: Partial<Record<Grade, number>>;
+}
+
 export interface ParallelHadith {
   hadith_id: number;
   book: string;

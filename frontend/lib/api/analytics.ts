@@ -1,5 +1,14 @@
 import { api } from "./client";
-import type { GradeDistribution, MutabiShahid, ParallelHadith } from "./types";
+import type {
+  CorpusOverview,
+  GradeDistribution,
+  MutabiShahid,
+  ParallelHadith,
+} from "./types";
+
+/** Lightweight corpus-wide totals + grade breakdown for the dashboard. */
+export const getCorpusOverview = () =>
+  api<CorpusOverview>("/analytics/overview/");
 
 /** Grade breakdown for one book (by slug) or the whole corpus when omitted. */
 export const getGradeDistribution = (book?: string) =>
