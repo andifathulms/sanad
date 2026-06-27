@@ -15,7 +15,10 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Security
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
+# Disable the in-app HTTPS redirect when TLS is terminated at an external
+# reverse proxy (the VM compose setup) — otherwise internal service-to-service
+# HTTP calls (Next → Django) get 301'd. Default stays True for Cloud Run.
+SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000

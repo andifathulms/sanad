@@ -1,29 +1,76 @@
+# Production stack — pulls prebuilt images from GHCR. No source code on the VM.
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+# Image refs + secrets come from .env (see .env.prod.example).
+
 services:
-  backend:
-    build:
-      context: ./backend
-      args:
-        REQUIREMENTS: prod
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+  db:
+    image: postgres:16
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings.production
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  backend:
+    image: ${BACKEND_IMAGE}
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
     env_file: .env
+    # Bind to localhost only — front it with a reverse proxy (Caddy/nginx) for TLS.
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     restart: unless-stopped
 
   celery:
-    build:
-      context: ./backend
-      args:
-        REQUIREMENTS: prod
+    image: ${BACKEND_IMAGE}
     command: celery -A config worker -l info -Q default,graph,analytics
-    environment:
-      DJANGO_SETTINGS_MODULE: config.settings.production
     env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  celery_beat:
+    image: ${BACKEND_IMAGE}
+    command: celery -A config beat -l info
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_started
     restart: unless-stopped
 
   frontend:
-    build: ./frontend
-    command: sh -c "npm run build && npm run start"
+    image: ${FRONTEND_IMAGE}
     environment:
+      # SSR + the /api/* proxy reach Django over the compose network.
       BACKEND_INTERNAL_URL: http://backend:8000
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

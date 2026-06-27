@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Emit a self-contained server bundle (.next/standalone) for a small prod image.
+  output: "standalone",
   // DRF requires trailing slashes; don't let Next strip them before proxying /api/*.
   skipTrailingSlashRedirect: true,
   async rewrites() {
