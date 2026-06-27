@@ -4,6 +4,7 @@ import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
 import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGradings";
 import { SanadInline } from "@/components/reader/SanadInline";
+import { MatnDisplay } from "@/components/reader/MatnDisplay";
 import { ChainProvenance } from "@/components/isnad/ChainProvenance";
 import { QuranRefs } from "@/components/reader/QuranRefs";
 import { ShareHadithCard } from "@/components/reader/ShareHadithCard";
@@ -68,9 +69,7 @@ export default async function HadithDetailPage({
         </div>
       )}
 
-      <div className="surface p-6">
-        <p className="arabic text-3xl">{hadith.matn_arabic}</p>
-      </div>
+      <MatnDisplay arabic={hadith.matn_arabic} baseRem={1.875} />
 
       <ScholarGradings gradings={hadith.gradings} />
 

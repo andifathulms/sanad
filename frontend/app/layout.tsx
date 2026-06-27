@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { NavMenu } from "@/components/NavMenu";
+import { ReaderSettingsMenu } from "@/components/reader/ReaderSettingsMenu";
+import { ReaderSettingsProvider } from "@/lib/hooks/useReaderSettings";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,15 +23,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <header className="relative border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
-            <Link href="/" className="font-crimson text-2xl font-semibold text-amber-node">
-              سند <span className="text-ivory">Sanad</span>
-            </Link>
-            <NavMenu />
-          </nav>
-        </header>
-        <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+        <ReaderSettingsProvider>
+          <header className="relative border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
+            <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
+              <Link href="/" className="font-crimson text-2xl font-semibold text-amber-node">
+                سند <span className="text-ivory">Sanad</span>
+              </Link>
+              <div className="flex items-center gap-1">
+                <NavMenu />
+                <ReaderSettingsMenu />
+              </div>
+            </nav>
+          </header>
+          <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+        </ReaderSettingsProvider>
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { HadithListItem } from "@/lib/api/types";
 import { GradeBadge } from "./GradeBadge";
+import { MatnDisplay } from "./MatnDisplay";
 
 /**
  * Reader card. Arabic matn is rendered in full (never truncated/altered) and the
@@ -33,7 +34,7 @@ export function HadithCard({ hadith }: { hadith: HadithListItem }) {
         </div>
       )}
 
-      <p className="arabic text-2xl">{hadith.matn_arabic}</p>
+      <MatnDisplay arabic={hadith.matn_arabic} baseRem={1.5} bare />
 
       {translation && (
         <div className="border-t border-white/5 pt-3 text-ivory/80">
