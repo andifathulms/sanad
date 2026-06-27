@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { NavAuth } from "@/components/NavAuth";
+import { NavMenu } from "@/components/NavMenu";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,24 +21,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <header className="border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
-          <nav className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="relative border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
+          <nav className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
             <Link href="/" className="font-crimson text-2xl font-semibold text-amber-node">
               سند <span className="text-ivory">Sanad</span>
             </Link>
-            <div className="-mx-1 flex flex-wrap gap-x-4 gap-y-2 px-1 text-sm text-ivory/80">
-              <Link href="/reader" className="hover:text-amber-node">Reader</Link>
-              <Link href="/explore" className="hover:text-amber-node">Explore</Link>
-              <Link href="/search" className="hover:text-amber-node">Search</Link>
-              <Link href="/narrator" className="hover:text-amber-node">Rijal</Link>
-              <Link href="/analyze/word" className="hover:text-amber-node">Words</Link>
-              <Link href="/analyze/grades" className="hover:text-amber-node">Grades</Link>
-              <Link href="/analyze/network" className="hover:text-amber-node">Network</Link>
-              <Link href="/isnad/path" className="hover:text-amber-node">Path</Link>
-              <Link href="/isnad/compare" className="hover:text-amber-node">Compare</Link>
-              <Link href="/dashboard" className="hover:text-amber-node">Dashboard</Link>
-              <NavAuth />
-            </div>
+            <NavMenu />
           </nav>
         </header>
         <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
