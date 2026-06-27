@@ -1,5 +1,11 @@
 import { api } from "./client";
-import type { MutabiShahid, ParallelHadith } from "./types";
+import type { GradeDistribution, MutabiShahid, ParallelHadith } from "./types";
+
+/** Grade breakdown for one book (by slug) or the whole corpus when omitted. */
+export const getGradeDistribution = (book?: string) =>
+  api<GradeDistribution>("/analytics/grade-distribution/", {
+    params: { book },
+  });
 
 /** Supporting narrations split into mutabi' (same companion) and shahid (different). */
 export const getMutabiShahid = (hadithId: number | string) =>

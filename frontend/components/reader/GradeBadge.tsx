@@ -1,6 +1,6 @@
 import type { Grade } from "@/lib/api/types";
 
-const GRADE_COLORS: Record<Grade, string> = {
+export const GRADE_COLORS: Record<Grade, string> = {
   sahih: "#27AE60",
   hasan: "#F39C12",
   daif: "#E74C3C",
@@ -8,7 +8,7 @@ const GRADE_COLORS: Record<Grade, string> = {
   unknown: "#7F8C8D",
 };
 
-const GRADE_LABELS: Record<Grade, string> = {
+export const GRADE_LABELS: Record<Grade, string> = {
   sahih: "Sahih",
   hasan: "Hasan",
   daif: "Da'if",
