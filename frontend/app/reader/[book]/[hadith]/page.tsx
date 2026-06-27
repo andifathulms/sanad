@@ -13,6 +13,7 @@ import { ShareHadithCard } from "@/components/reader/ShareHadithCard";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import { RecordHistory } from "@/components/reader/RecordHistory";
 import { StudyTabs, type StudyTab } from "@/components/reader/StudyTabs";
+import { FocusMode } from "@/components/reader/FocusMode";
 import { getMutabiShahid } from "@/lib/api/analytics";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
 
@@ -108,8 +109,13 @@ export default async function HadithDetailPage({
   return (
     <article className="space-y-6">
       <RecordHistory hadithId={hadith.id} />
+      <FocusMode />
 
-      <nav className="flex flex-wrap items-center gap-1.5 text-sm text-ivory/50" aria-label="Breadcrumb">
+      <nav
+        data-focus-hide
+        className="flex flex-wrap items-center gap-1.5 text-sm text-ivory/50"
+        aria-label="Breadcrumb"
+      >
         <Link href="/reader" className="hover:text-amber-node">Reader</Link>
         <span className="text-ivory/25">/</span>
         <Link href={`/reader/${params.book}`} className="hover:text-amber-node">
@@ -133,9 +139,11 @@ export default async function HadithDetailPage({
         </span>
       </nav>
 
-      <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
+      <div data-focus-hide>
+        <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
+      </div>
 
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header data-focus-hide className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-mono text-sm text-ivory/60">{hadith.global_reference}</p>
           {hadith.alt_reference && (
@@ -176,7 +184,9 @@ export default async function HadithDetailPage({
         </p>
       )}
 
-      <StudyTabs tabs={studyTabs} />
+      <div data-focus-hide>
+        <StudyTabs tabs={studyTabs} />
+      </div>
 
       <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
     </article>

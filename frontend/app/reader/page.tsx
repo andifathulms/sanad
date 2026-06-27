@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBooks } from "@/lib/api/hadith";
+import { ContinueReading } from "@/components/reader/ContinueReading";
 import type { Book } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export default async function ReaderHome() {
   return (
     <section className="space-y-6">
       <h1 className="font-crimson text-3xl font-bold">Hadith Collections</h1>
+      <ContinueReading />
       {error && (
         <p className="surface p-4 text-ivory/70">
           Could not reach the corpus API. Start the backend and run the ingestion

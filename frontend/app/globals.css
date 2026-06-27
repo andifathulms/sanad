@@ -21,3 +21,12 @@ body {
 .surface {
   @apply bg-indigo-navy rounded-xl border border-white/5;
 }
+
+/* Immersive reading: hide the site header + in-page chrome, leaving matn + translation. */
+body.reading-focus header,
+body.reading-focus [data-focus-hide] {
+  display: none !important;
+}
+body.reading-focus main {
+  @apply max-w-3xl;
+}
