@@ -6,6 +6,7 @@ import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGrad
 import { SanadInline } from "@/components/reader/SanadInline";
 import { ChainProvenance } from "@/components/isnad/ChainProvenance";
 import { QuranRefs } from "@/components/reader/QuranRefs";
+import { ShareHadithCard } from "@/components/reader/ShareHadithCard";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import { RecordHistory } from "@/components/reader/RecordHistory";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
@@ -98,6 +99,14 @@ export default async function HadithDetailPage({
       <QuranRefs refs={hadith.quran_refs} />
 
       <ParallelNarrations hadithId={hadith.id} />
+
+      <ShareHadithCard
+        arabic={hadith.matn_arabic}
+        translation={hadith.translation_en || hadith.translation_id}
+        reference={hadith.global_reference}
+        grade={hadith.grade}
+        source={hadith.grade_source}
+      />
 
       {hadith.grade_notes && (
         <p className="text-sm text-ivory/60">
