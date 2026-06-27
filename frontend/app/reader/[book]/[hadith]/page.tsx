@@ -12,6 +12,8 @@ import { QuranRefs } from "@/components/reader/QuranRefs";
 import { ShareHadithCard } from "@/components/reader/ShareHadithCard";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import { RecordHistory } from "@/components/reader/RecordHistory";
+import { StudyTabs, type StudyTab } from "@/components/reader/StudyTabs";
+import { getMutabiShahid } from "@/lib/api/analytics";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -43,8 +45,65 @@ export default async function HadithDetailPage({
     return <p className="surface p-4">Hadith not found or API unavailable.</p>;
   }
 
+  let hasParallels = false;
+  try {
+    const mp = await getMutabiShahid(hadith.id);
+    hasParallels = (mp.mutabi?.length ?? 0) + (mp.shahid?.length ?? 0) > 0;
+  } catch {
+    /* analytics optional */
+  }
+
   const pagerTarget = (n: HadithNeighborRef | null) =>
     n ? { href: `/reader/${n.book_slug}/${n.id}`, label: n.global_reference } : null;
+
+  // Analytical panels live behind tabs so the reading surface stays focused.
+  // Tabs only appear when they have something to show.
+  const studyTabs: StudyTab[] = [
+    {
+      key: "chain",
+      label: "Chain",
+      content: (
+        <div className="surface space-y-4 p-6">
+          <SanadInline chain={sanad.chain} hadithId={hadith.id} />
+          <ChainProvenance chainType={hadith.chain_type} />
+        </div>
+      ),
+    },
+  ];
+  if (hadith.gradings.length > 0) {
+    studyTabs.push({
+      key: "gradings",
+      label: "Scholarly grading",
+      content: <ScholarGradings gradings={hadith.gradings} />,
+    });
+  }
+  if (hadith.quran_refs.length > 0) {
+    studyTabs.push({
+      key: "quran",
+      label: "Qur'an links",
+      content: <QuranRefs refs={hadith.quran_refs} />,
+    });
+  }
+  if (hasParallels) {
+    studyTabs.push({
+      key: "parallels",
+      label: "Parallels",
+      content: <ParallelNarrations hadithId={hadith.id} />,
+    });
+  }
+  studyTabs.push({
+    key: "share",
+    label: "Share",
+    content: (
+      <ShareHadithCard
+        arabic={hadith.matn_arabic}
+        translation={hadith.translation_en || hadith.translation_id}
+        reference={hadith.global_reference}
+        grade={hadith.grade}
+        source={hadith.grade_source}
+      />
+    ),
+  });
 
   return (
     <article className="space-y-6">
@@ -108,33 +167,16 @@ export default async function HadithDetailPage({
 
       <MatnDisplay arabic={hadith.matn_arabic} baseRem={1.875} />
 
-      <ScholarGradings gradings={hadith.gradings} />
-
       <Translations en={hadith.translation_en} id={hadith.translation_id} />
 
-      <div className="surface space-y-4 p-6">
-        <SanadInline chain={sanad.chain} hadithId={hadith.id} />
-        <ChainProvenance chainType={hadith.chain_type} />
-      </div>
-
-      <QuranRefs refs={hadith.quran_refs} />
-
-      <ParallelNarrations hadithId={hadith.id} />
-
-      <ShareHadithCard
-        arabic={hadith.matn_arabic}
-        translation={hadith.translation_en || hadith.translation_id}
-        reference={hadith.global_reference}
-        grade={hadith.grade}
-        source={hadith.grade_source}
-      />
-
       {hadith.grade_notes && (
-        <p className="text-sm text-ivory/60">
+        <p className="max-w-[68ch] text-sm text-ivory/60">
           <span className="text-ivory/40">Grading notes: </span>
           {hadith.grade_notes}
         </p>
       )}
+
+      <StudyTabs tabs={studyTabs} />
 
       <HadithPager prev={pagerTarget(neighbors.prev)} next={pagerTarget(neighbors.next)} />
     </article>
