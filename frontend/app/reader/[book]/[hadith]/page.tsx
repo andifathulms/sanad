@@ -5,6 +5,7 @@ import { GradeBadge } from "@/components/reader/GradeBadge";
 import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGradings";
 import { SanadInline } from "@/components/reader/SanadInline";
 import { ChainProvenance } from "@/components/isnad/ChainProvenance";
+import { QuranRefs } from "@/components/reader/QuranRefs";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
 import { RecordHistory } from "@/components/reader/RecordHistory";
 import type { HadithDetail, SanadResponse } from "@/lib/api/types";
@@ -93,6 +94,8 @@ export default async function HadithDetailPage({
         <SanadInline chain={sanad.chain} hadithId={hadith.id} />
         <ChainProvenance chainType={hadith.chain_type} />
       </div>
+
+      <QuranRefs refs={hadith.quran_refs} />
 
       <ParallelNarrations hadithId={hadith.id} />
 
