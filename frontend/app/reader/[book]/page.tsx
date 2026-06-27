@@ -15,11 +15,15 @@ export default async function BookPage({
   params: { book: string };
   searchParams: { chapter?: string; page?: string; grade?: string };
 }) {
+  const PAGE_SIZE = 20; // CLAUDE.md: max 20 hadiths per page
   const chapterNo = searchParams.chapter ? Number(searchParams.chapter) : undefined;
   const grade = searchParams.grade;
+  const currentPage = searchParams.page ? Math.max(1, Number(searchParams.page)) : 1;
   let book: Book | null = null;
   let chapters: Chapter[] = [];
   let hadiths: HadithListItem[] = [];
+  let totalCount = 0;
+  let hasNext = false;
   try {
     [book, chapters] = await Promise.all([
       getBook(params.book),
@@ -28,18 +32,33 @@ export default async function BookPage({
     const page = await getBookHadiths(params.book, {
       chapter: chapterNo,
       grade,
-      page: searchParams.page ? Number(searchParams.page) : 1,
+      page: currentPage,
     });
     hadiths = page.results;
+    totalCount = page.count;
+    hasNext = Boolean(page.next);
   } catch {
     return <p className="surface p-4">Book not found or API unavailable.</p>;
   }
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
   // Build a hadiths-list href that keeps the active chapter and toggles grade.
+  // Changing chapter/grade resets to page 1.
   const hrefWithGrade = (g?: Grade) => {
     const sp = new URLSearchParams();
     if (chapterNo) sp.set("chapter", String(chapterNo));
     if (g) sp.set("grade", g);
+    const qs = sp.toString();
+    return `/reader/${params.book}${qs ? `?${qs}` : ""}`;
+  };
+
+  // Build a href that keeps chapter/grade and moves to a specific page.
+  const hrefWithPage = (p: number) => {
+    const sp = new URLSearchParams();
+    if (chapterNo) sp.set("chapter", String(chapterNo));
+    if (grade) sp.set("grade", grade);
+    if (p > 1) sp.set("page", String(p));
     const qs = sp.toString();
     return `/reader/${params.book}${qs ? `?${qs}` : ""}`;
   };
@@ -96,6 +115,43 @@ export default async function BookPage({
         ))}
         {!hadiths.length && (
           <p className="surface p-4 text-ivory/60">No hadiths to display yet.</p>
+        )}
+
+        {totalCount > PAGE_SIZE && (
+          <nav className="flex items-center justify-between gap-3 pt-2 text-sm" aria-label="Pagination">
+            {currentPage > 1 ? (
+              <Link
+                href={hrefWithPage(currentPage - 1)}
+                rel="prev"
+                className="rounded-lg border border-white/10 bg-indigo-navy px-4 py-2 hover:border-amber-node/50"
+              >
+                ← Previous
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-white/5 px-4 py-2 text-ivory/30">
+                ← Previous
+              </span>
+            )}
+
+            <span className="text-ivory/50">
+              Page {currentPage} of {totalPages}{" "}
+              <span className="text-ivory/30">· {totalCount.toLocaleString()} hadiths</span>
+            </span>
+
+            {hasNext ? (
+              <Link
+                href={hrefWithPage(currentPage + 1)}
+                rel="next"
+                className="rounded-lg border border-white/10 bg-indigo-navy px-4 py-2 hover:border-amber-node/50"
+              >
+                Next →
+              </Link>
+            ) : (
+              <span className="rounded-lg border border-white/5 px-4 py-2 text-ivory/30">
+                Next →
+              </span>
+            )}
+          </nav>
         )}
       </div>
     </section>
