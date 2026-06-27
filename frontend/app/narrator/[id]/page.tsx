@@ -1,6 +1,10 @@
 import { getNarrator } from "@/lib/api/hadith";
 import { NarratorTabs } from "@/components/isnad/NarratorTabs";
-import { RELIABILITY_COLORS } from "@/components/reader/NarratorChip";
+import {
+  RELIABILITY_COLORS,
+  RELIABILITY_LABELS,
+  isAssessed,
+} from "@/components/reader/NarratorChip";
 import type { Narrator } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +26,7 @@ export default async function NarratorPage({ params }: { params: { id: string } 
     return <p className="surface p-4">Narrator not found or API unavailable.</p>;
   }
   const color = RELIABILITY_COLORS[narrator.reliability_grade];
+  const assessed = isAssessed(narrator.reliability_grade);
 
   return (
     <section className="space-y-6">
@@ -31,10 +36,22 @@ export default async function NarratorPage({ params }: { params: { id: string } 
         {narrator.kunya && <p className="text-ivory/60">{narrator.kunya}</p>}
         <div className="mt-4 flex items-center gap-2">
           <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-          <span className="capitalize" style={{ color }}>
-            {narrator.reliability_grade}
-          </span>
+          <span style={{ color }}>{RELIABILITY_LABELS[narrator.reliability_grade]}</span>
         </div>
+        {assessed ? (
+          <p className="mt-1 text-xs text-ivory/50">
+            According to:{" "}
+            {narrator.bio_source?.trim() || "classical rijal scholarship (source not recorded)"}
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-ivory/40">
+            No reliability assessment is recorded for this narrator in our data. Absence of a
+            grade is not itself a verdict — consult the primary rijal literature.
+          </p>
+        )}
+        {narrator.reliability_notes?.trim() && (
+          <p className="mt-3 text-sm text-ivory/70">{narrator.reliability_notes}</p>
+        )}
       </header>
 
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

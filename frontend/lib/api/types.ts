@@ -65,6 +65,10 @@ export interface Narrator {
   death_year_ah: number | null;
   total_hadiths: number;
   centrality_score: number;
+  // Present on the detail endpoint only:
+  reliability_notes?: string;
+  bio_source?: string;
+  region?: string;
 }
 
 export interface ChainNarrator {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RELIABILITY_COLORS } from "@/components/reader/NarratorChip";
+import { RELIABILITY_COLORS, RELIABILITY_LABELS } from "@/components/reader/NarratorChip";
 import type { Narrator } from "@/lib/api/types";
 
 const GENERATION_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ export function NarratorListCard({ narrator }: { narrator: Narrator }) {
       <span
         className="ml-3 h-3 w-3 shrink-0 rounded-full"
         style={{ backgroundColor: color }}
-        title={narrator.reliability_grade}
+        title={RELIABILITY_LABELS[narrator.reliability_grade]}
       />
     </Link>
   );
