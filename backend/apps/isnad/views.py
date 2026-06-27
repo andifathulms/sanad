@@ -140,6 +140,7 @@ class GlobalNetworkView(APIView):
             {
                 "id": str(n.id),
                 "label": n.name_arabic,
+                "label_latin": n.name_transliteration,
                 "reliability": n.reliability_grade,
                 "color": RELIABILITY_COLORS.get(n.reliability_grade, "#95A5A6"),
                 "generation": n.generation,

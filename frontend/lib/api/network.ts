@@ -3,6 +3,7 @@ import { api } from "./client";
 export interface NetworkNode {
   id: string;
   label: string;
+  label_latin?: string;
   reliability: string;
   color: string;
   generation: string;
