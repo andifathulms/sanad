@@ -49,4 +49,5 @@ export const searchHadiths = (params: {
   lang?: "ar" | "en" | "id";
   book?: string;
   grade?: string;
+  page?: number;
 }) => api<Paginated<HadithListItem>>("/search/", { params });
