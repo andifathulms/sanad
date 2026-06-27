@@ -5,6 +5,13 @@
 > isnad-intelligence layer — but the frontend exposes only a fraction of it. The
 > highest-ROI work right now is *surfacing finished value*, not building new systems.
 
+> **Status (implemented):** Sprints 1–4 below are now built and committed.
+> Backend changes require running the new migration and seed commands:
+> `python manage.py migrate`, then `seed_quran_refs`, `seed_topics`
+> (and the existing `compute_stats` / `compute_similarity` so analytics tables
+> are populated). Frontend verified with `tsc --noEmit` and a full `next build`
+> (all 16 routes compile).
+
 ---
 
 ## 0. The core finding — stranded backend value
