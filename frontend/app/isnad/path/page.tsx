@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RELIABILITY_COLORS } from "@/lib/grading";
 import { searchNarrators } from "@/lib/api/isnad";
 import { getNarratorPath, type PathNarrator } from "@/lib/api/network";
 import type { Narrator } from "@/lib/api/types";
 
-/** Inline narrator picker: search by name, click a result to select it. */
+/**
+ * Inline narrator picker with live typeahead: results appear in a dropdown as you
+ * type (in Latin OR Arabic — the backend matches transliteration too), so you don't
+ * need to know a narrator's exact Arabic spelling to find them.
+ */
 function Picker({
   label,
   selected,
@@ -19,16 +23,41 @@ function Picker({
 }) {
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Narrator[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
 
-  async function search() {
-    if (!q.trim()) return;
-    try {
-      const page = await searchNarrators({ q: q.trim() });
-      setResults(page.results.slice(0, 6));
-    } catch {
+  // Debounced search-as-you-type (min 2 chars).
+  useEffect(() => {
+    const term = q.trim();
+    if (term.length < 2) {
       setResults([]);
+      setLoading(false);
+      return;
     }
-  }
+    setLoading(true);
+    const t = setTimeout(async () => {
+      try {
+        const page = await searchNarrators({ q: term });
+        setResults(page.results.slice(0, 8));
+        setOpen(true);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  // Close the dropdown on outside click.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   return (
     <div className="flex-1 space-y-2">
@@ -38,44 +67,54 @@ function Picker({
           onClick={() => onSelect(null)}
           className="flex w-full items-center justify-between rounded-lg border border-amber-node/50 bg-amber-node/10 px-3 py-2"
         >
-          <span className="arabic text-lg">{selected.name_arabic}</span>
+          <span className="flex flex-col items-start leading-tight">
+            <span className="arabic text-lg">{selected.name_arabic}</span>
+            {selected.name_transliteration && (
+              <span className="text-xs text-ivory/50">{selected.name_transliteration}</span>
+            )}
+          </span>
           <span className="text-xs text-ivory/50">change</span>
         </button>
       ) : (
-        <>
-          <div className="flex gap-2">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && search()}
-              placeholder="Search narrator…"
-              dir="rtl"
-              className="arabic flex-1 rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 text-lg outline-none focus:border-amber-node"
-            />
-            <button onClick={search} className="rounded-lg bg-indigo-scholar px-4 hover:bg-indigo-scholar/80">
-              ↵
-            </button>
-          </div>
-          {results.length > 0 && (
-            <ul className="space-y-1">
-              {results.map((n) => (
-                <li key={n.id}>
-                  <button
-                    onClick={() => {
-                      onSelect(n);
-                      setResults([]);
-                      setQ("");
-                    }}
-                    className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-indigo-navy px-3 py-1.5 hover:border-amber-node/40"
-                  >
-                    <span className="arabic">{n.name_arabic}</span>
-                    <span className="text-xs text-ivory/40">{n.total_hadiths} hadiths</span>
-                  </button>
-                </li>
-              ))}
+        <div ref={boxRef} className="relative">
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onFocus={() => results.length && setOpen(true)}
+            dir="auto"
+            placeholder="Type a name, e.g. Abu Hurayra or أبو هريرة"
+            className="w-full rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 outline-none focus:border-amber-node"
+          />
+          {open && (loading || results.length > 0) && (
+            <ul className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-white/10 bg-indigo-navy shadow-xl">
+              {loading && <li className="px-3 py-2 text-sm text-ivory/40">Searching…</li>}
+              {!loading &&
+                results.map((n) => (
+                  <li key={n.id}>
+                    <button
+                      onClick={() => {
+                        onSelect(n);
+                        setResults([]);
+                        setQ("");
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-white/5"
+                    >
+                      <span className="flex flex-col leading-tight">
+                        <span className="arabic text-base">{n.name_arabic}</span>
+                        {n.name_transliteration && (
+                          <span className="text-xs text-ivory/50">{n.name_transliteration}</span>
+                        )}
+                      </span>
+                      <span className="shrink-0 text-xs text-ivory/40">
+                        {n.total_hadiths.toLocaleString()} hadiths
+                      </span>
+                    </button>
+                  </li>
+                ))}
             </ul>
           )}
-        </>
+        </div>
       )}
     </div>
   );
