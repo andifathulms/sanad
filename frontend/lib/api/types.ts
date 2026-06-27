@@ -99,6 +99,15 @@ export interface CorpusOverview {
   by_grade: Partial<Record<Grade, number>>;
 }
 
+export interface Topic {
+  id: number;
+  slug: string;
+  name_en: string;
+  name_id: string;
+  name_arabic: string;
+  hadith_count: number;
+}
+
 export interface CentralNarrator {
   id: number;
   name: string;

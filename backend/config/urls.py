@@ -17,6 +17,7 @@ api_v1 = [
     path("", include("apps.hadith.urls")),
     path("", include("apps.isnad.urls")),
     path("", include("apps.analytics.urls")),
+    path("", include("apps.semantic.urls")),
     path("", include("apps.users.urls")),
     path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
