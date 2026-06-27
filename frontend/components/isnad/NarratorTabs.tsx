@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NarratorListCard } from "@/components/isnad/NarratorListCard";
+import { GradeBadge } from "@/components/reader/GradeBadge";
 import { getNarratorHadiths, getNarratorStudents, getNarratorTeachers } from "@/lib/api/isnad";
 import type { HadithListItem, Narrator } from "@/lib/api/types";
 
@@ -17,7 +18,25 @@ export function NarratorTabs({ narratorId }: { narratorId: number }) {
   const [tab, setTab] = useState<Tab>("teachers");
   const [people, setPeople] = useState<Narrator[]>([]);
   const [hadiths, setHadiths] = useState<HadithListItem[]>([]);
+  const [hadithPage, setHadithPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  async function loadMoreHadiths() {
+    setLoadingMore(true);
+    try {
+      const next = hadithPage + 1;
+      const page = await getNarratorHadiths(narratorId, next);
+      setHadiths((prev) => [...prev, ...page.results]);
+      setHadithPage(next);
+      setHasMore(Boolean(page.next));
+    } catch {
+      /* keep what we have */
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -25,8 +44,12 @@ export function NarratorTabs({ narratorId }: { narratorId: number }) {
     const load = async () => {
       try {
         if (tab === "hadiths") {
-          const page = await getNarratorHadiths(narratorId);
-          if (!cancelled) setHadiths(page.results);
+          const page = await getNarratorHadiths(narratorId, 1);
+          if (!cancelled) {
+            setHadiths(page.results);
+            setHadithPage(1);
+            setHasMore(Boolean(page.next));
+          }
         } else {
           const list =
             tab === "teachers"
@@ -80,23 +103,45 @@ export function NarratorTabs({ narratorId }: { narratorId: number }) {
       )}
 
       {!loading && tab === "hadiths" && (
-        <ul className="space-y-2">
+        <div className="space-y-2">
           {hadiths.length ? (
-            hadiths.map((h) => (
-              <li key={h.id} className="surface p-4">
-                <Link
-                  href={`/reader/${h.book_slug}/${h.id}`}
-                  className="font-mono text-sm text-ivory/70 hover:text-amber-node"
+            <>
+              <ul className="space-y-2">
+                {hadiths.map((h) => {
+                  const translation = h.translation_en || h.translation_id;
+                  return (
+                    <li key={h.id} className="surface p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link
+                          href={`/reader/${h.book_slug}/${h.id}`}
+                          className="font-mono text-sm text-ivory/70 hover:text-amber-node"
+                        >
+                          {h.global_reference}
+                        </Link>
+                        <GradeBadge grade={h.grade} source={h.grade_source} />
+                      </div>
+                      <p className="arabic mt-1 line-clamp-2 text-lg">{h.matn_arabic}</p>
+                      {translation && (
+                        <p className="mt-1 line-clamp-2 text-sm text-ivory/70">{translation}</p>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              {hasMore && (
+                <button
+                  onClick={loadMoreHadiths}
+                  disabled={loadingMore}
+                  className="w-full rounded-lg border border-white/10 bg-indigo-navy py-2 text-sm text-ivory/70 hover:border-amber-node/40 disabled:opacity-50"
                 >
-                  {h.global_reference}
-                </Link>
-                <p className="arabic mt-1 line-clamp-2 text-lg">{h.matn_arabic}</p>
-              </li>
-            ))
+                  {loadingMore ? "Loading…" : "Load more"}
+                </button>
+              )}
+            </>
           ) : (
             <p className="text-ivory/50">No hadiths recorded yet.</p>
           )}
-        </ul>
+        </div>
       )}
     </div>
   );
