@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getBook, getBookHadiths, getChapters } from "@/lib/api/hadith";
 import { HadithCard } from "@/components/reader/HadithCard";
-import { GRADE_LABELS } from "@/components/reader/GradeBadge";
+import { GRADE_LABELS } from "@/lib/grading";
 import type { Book, Chapter, Grade, HadithListItem } from "@/lib/api/types";
 
 export const dynamic = "force-dynamic";

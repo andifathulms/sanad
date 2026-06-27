@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GRADE_COLORS, GRADE_LABELS } from "@/components/reader/GradeBadge";
+import { GRADE_COLORS, GRADE_LABELS } from "@/lib/grading";
 import type { Grade } from "@/lib/api/types";
 
 interface Props {

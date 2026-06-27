@@ -1,4 +1,4 @@
-import { GRADE_COLORS, GRADE_LABELS } from "@/components/reader/GradeBadge";
+import { GRADE_COLORS, GRADE_LABELS } from "@/lib/grading";
 import type { Grade, GradeDistribution } from "@/lib/api/types";
 
 const ORDER: Grade[] = ["sahih", "hasan", "daif", "maudu", "unknown"];
