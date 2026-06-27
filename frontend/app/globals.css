@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap");
-
+/* Fonts are loaded via <link> in app/layout.tsx (a build-time CSS @import of a remote
+   URL stalls Next's CSS compilation and drops the whole stylesheet). */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

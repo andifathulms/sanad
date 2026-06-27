@@ -11,6 +11,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* Loaded by the browser at runtime, not Next's CSS build. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&family=IBM+Plex+Sans+Arabic:wght@400;600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         <header className="border-b border-white/5 bg-indigo-navy/60 backdrop-blur">
           <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
