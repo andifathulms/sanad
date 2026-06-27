@@ -28,6 +28,10 @@ export function SanadInline({
           View full chain →
         </Link>
       </div>
+      <p className="text-xs text-ivory/40">
+        Read left to right: Prophet&nbsp;ﷺ&nbsp;→&nbsp;…&nbsp;→&nbsp;collector. The glyph on
+        each narrator marks their reliability grade.
+      </p>
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
         {ordered.map((link, i) => (
           <div key={link.narrator.id} className="flex items-center gap-2">
