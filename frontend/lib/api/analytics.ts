@@ -1,11 +1,18 @@
 import { api } from "./client";
 import type {
+  CentralNarrator,
   CorpusOverview,
   GradeDistribution,
   MutabiShahid,
   ParallelHadith,
   WordFrequency,
 } from "./types";
+
+/** Top narrators by precomputed betweenness centrality (network hubs). */
+export const getNarratorCentrality = (top = 20) =>
+  api<{ narrators: CentralNarrator[] }>("/analytics/narrator-centrality/", {
+    params: { top },
+  }).then((r) => r.narrators);
 
 /** Frequency of an Arabic word across the corpus, optionally scoped to a book. */
 export const getWordFrequency = (word: string, book?: string) =>

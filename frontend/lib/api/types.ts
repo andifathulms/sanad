@@ -87,6 +87,13 @@ export interface CorpusOverview {
   by_grade: Partial<Record<Grade, number>>;
 }
 
+export interface CentralNarrator {
+  id: number;
+  name: string;
+  centrality_score: number;
+  hadith_count: number;
+}
+
 export interface WordFrequency {
   word: string;
   total: number;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NarratorListCard } from "@/components/isnad/NarratorListCard";
+import { TopNarrators } from "@/components/analytics/TopNarrators";
 import { searchNarrators } from "@/lib/api/isnad";
 import type { Narrator } from "@/lib/api/types";
 
@@ -43,6 +44,8 @@ export default function NarratorBrowsePage() {
   return (
     <section className="space-y-6">
       <h1 className="font-crimson text-3xl font-bold">Rijal — Narrator Encyclopedia</h1>
+
+      <TopNarrators />
 
       <form
         onSubmit={(e) => {
