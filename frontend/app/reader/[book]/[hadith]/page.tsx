@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getHadith, getSanad } from "@/lib/api/hadith";
 import { BookmarkButton } from "@/components/reader/BookmarkButton";
 import { GradeBadge } from "@/components/reader/GradeBadge";
+import { ScholarGradings, scholarsDiffer } from "@/components/reader/ScholarGradings";
 import { SanadInline } from "@/components/reader/SanadInline";
 import { ChainProvenance } from "@/components/isnad/ChainProvenance";
 import { ParallelNarrations } from "@/components/analytics/ParallelNarrations";
@@ -45,6 +46,11 @@ export default async function HadithDetailPage({
         <div className="flex items-center gap-3">
           <BookmarkButton hadithId={hadith.id} />
           <GradeBadge grade={hadith.grade} source={hadith.grade_source} />
+          {scholarsDiffer(hadith.gradings) && (
+            <span className="rounded-full bg-grade-hasan/15 px-2.5 py-0.5 text-xs text-grade-hasan">
+              Scholars differ
+            </span>
+          )}
         </div>
       </header>
 
@@ -63,6 +69,8 @@ export default async function HadithDetailPage({
       <div className="surface p-6">
         <p className="arabic text-3xl">{hadith.matn_arabic}</p>
       </div>
+
+      <ScholarGradings gradings={hadith.gradings} />
 
       <div className="grid gap-4 md:grid-cols-2">
         {hadith.translation_en && (

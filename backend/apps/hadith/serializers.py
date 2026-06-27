@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Book, Chapter, Hadith, HadithQuranRef
+from .models import Book, Chapter, Hadith, HadithGrading, HadithQuranRef
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -25,6 +25,12 @@ class QuranRefSerializer(serializers.ModelSerializer):
         fields = ["surah_number", "verse_number", "relevance_type"]
 
 
+class GradingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HadithGrading
+        fields = ["grade", "scholar", "source", "notes"]
+
+
 class HadithListSerializer(serializers.ModelSerializer):
     """Lighter payload for list/search results."""
 
@@ -45,6 +51,7 @@ class HadithDetailSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     chapter = ChapterSerializer(read_only=True)
     quran_refs = QuranRefSerializer(many=True, read_only=True)
+    gradings = GradingSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hadith
@@ -53,5 +60,5 @@ class HadithDetailSerializer(serializers.ModelSerializer):
             "book", "chapter",
             "matn_arabic", "matn_clean", "translation_en", "translation_id",
             "grade", "grade_source", "grade_notes",
-            "chain_type", "has_parallel", "source_api", "quran_refs",
+            "chain_type", "has_parallel", "source_api", "quran_refs", "gradings",
         ]

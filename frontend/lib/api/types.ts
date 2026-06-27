@@ -43,6 +43,13 @@ export interface HadithListItem {
   has_parallel: boolean;
 }
 
+export interface ScholarGrading {
+  grade: Grade;
+  scholar: string;
+  source: string;
+  notes: string;
+}
+
 export interface HadithDetail extends HadithListItem {
   alt_reference: string;
   book: Book;
@@ -52,6 +59,7 @@ export interface HadithDetail extends HadithListItem {
   chain_type: string;
   source_api: string;
   quran_refs: { surah_number: number; verse_number: number; relevance_type: string }[];
+  gradings: ScholarGrading[];
 }
 
 export interface Narrator {

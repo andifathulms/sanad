@@ -139,3 +139,25 @@ class HadithQuranRef(models.Model):
 
     def __str__(self):
         return f"{self.hadith_id} -> Q{self.surah_number}:{self.verse_number}"
+
+
+class HadithGrading(models.Model):
+    """A single scholar's grade for a hadith.
+
+    Lets us record multiple, possibly conflicting, classical gradings (e.g.
+    Al-Albani vs Ibn Hajar) instead of collapsing to one. The platform never
+    grades — every row is attributed to a named scholar/source.
+    """
+
+    hadith = models.ForeignKey(Hadith, on_delete=models.CASCADE, related_name="gradings")
+    grade = models.CharField(max_length=20, choices=Hadith.GRADE_CHOICES)
+    scholar = models.CharField(max_length=200)  # e.g. 'Al-Albani', 'Ibn Hajar'
+    source = models.CharField(max_length=200, blank=True)  # e.g. 'Sahih al-Jami'
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        unique_together = ("hadith", "scholar")
+        ordering = ["scholar"]
+
+    def __str__(self):
+        return f"{self.hadith_id}: {self.grade} ({self.scholar})"

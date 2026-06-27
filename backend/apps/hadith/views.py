@@ -47,7 +47,11 @@ class ChapterViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class HadithViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Hadith.objects.select_related("book", "chapter").all()
+    queryset = (
+        Hadith.objects.select_related("book", "chapter")
+        .prefetch_related("gradings", "quran_refs")
+        .all()
+    )
     serializer_class = HadithDetailSerializer
     filterset_fields = ["book__slug", "grade", "chain_type"]
 

@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Book, Chapter, Hadith, HadithParallel, HadithQuranRef
+from .models import (
+    Book,
+    Chapter,
+    Hadith,
+    HadithGrading,
+    HadithParallel,
+    HadithQuranRef,
+)
 
 
 @admin.register(Book)
@@ -41,4 +48,12 @@ class HadithParallelAdmin(admin.ModelAdmin):
 @admin.register(HadithQuranRef)
 class HadithQuranRefAdmin(admin.ModelAdmin):
     list_display = ("hadith", "surah_number", "verse_number", "relevance_type")
+    raw_id_fields = ("hadith",)
+
+
+@admin.register(HadithGrading)
+class HadithGradingAdmin(admin.ModelAdmin):
+    list_display = ("hadith", "grade", "scholar", "source")
+    list_filter = ("grade", "scholar")
+    search_fields = ("scholar", "source")
     raw_id_fields = ("hadith",)
