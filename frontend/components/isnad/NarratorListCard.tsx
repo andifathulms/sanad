@@ -21,6 +21,9 @@ export function NarratorListCard({ narrator }: { narrator: Narrator }) {
     >
       <div className="min-w-0">
         <p className="arabic truncate text-xl text-amber-node">{narrator.name_arabic}</p>
+        {narrator.name_transliteration && (
+          <p className="truncate text-sm text-ivory/80">{narrator.name_transliteration}</p>
+        )}
         <p className="text-xs text-ivory/50">
           {GENERATION_LABELS[narrator.generation] ?? narrator.generation}
           {narrator.death_year_ah ? ` · d. ${narrator.death_year_ah} AH` : ""}

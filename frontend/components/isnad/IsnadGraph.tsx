@@ -19,21 +19,33 @@ import type { SanadResponse } from "@/lib/api/types";
 export function IsnadGraph({ data }: { data: SanadResponse["graph_data"] }) {
   const nodes: Node[] = useMemo(
     () =>
-      data.nodes.map((n, i) => ({
-        id: n.id,
-        position: { x: 0, y: i * 120 },
-        data: { label: String((n.data as any).label_ar ?? (n.data as any).label ?? n.id) },
-        style: {
-          background: String((n.data as any).color ?? "#95A5A6"),
-          color: "#1A1A2E",
-          border: "none",
-          borderRadius: 12,
-          padding: 10,
-          fontFamily: "'IBM Plex Sans Arabic', sans-serif",
-          width: 200,
-          textAlign: "center" as const,
-        },
-      })),
+      data.nodes.map((n, i) => {
+        const ar = (n.data as any).label_ar as string | undefined;
+        const latin = (n.data as any).label as string | undefined;
+        return {
+          id: n.id,
+          position: { x: 0, y: i * 120 },
+          data: {
+            label: (
+              <div className="leading-tight">
+                {ar && <div className="text-base">{ar}</div>}
+                {latin && <div className="text-xs opacity-70">{latin}</div>}
+                {!ar && !latin && <div>{n.id}</div>}
+              </div>
+            ),
+          },
+          style: {
+            background: String((n.data as any).color ?? "#95A5A6"),
+            color: "#1A1A2E",
+            border: "none",
+            borderRadius: 12,
+            padding: 10,
+            fontFamily: "'IBM Plex Sans Arabic', sans-serif",
+            width: 200,
+            textAlign: "center" as const,
+          },
+        };
+      }),
     [data.nodes],
   );
 

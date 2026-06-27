@@ -35,7 +35,12 @@ export function NarratorChip({ narrator }: { narrator: Narrator }) {
       className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 hover:border-amber-node/50"
     >
       <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
-      <span className="arabic text-base">{narrator.name_arabic}</span>
+      <span className="flex flex-col leading-tight">
+        <span className="arabic text-base">{narrator.name_arabic}</span>
+        {narrator.name_transliteration && (
+          <span className="text-xs text-ivory/50">{narrator.name_transliteration}</span>
+        )}
+      </span>
     </Link>
   );
 }
