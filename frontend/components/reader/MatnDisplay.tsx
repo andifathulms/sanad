@@ -2,13 +2,8 @@
 
 import { useState } from "react";
 import { stripTashkeel } from "@/lib/arabic";
-import { useReaderSettings, type MatnTheme } from "@/lib/hooks/useReaderSettings";
-
-const THEME_CLASS: Record<MatnTheme, string> = {
-  night: "border-white/5 bg-indigo-navy text-ivory",
-  sepia: "border-[#e0d4b8] bg-[#f4ecd8] text-[#3a2e1f]",
-  paper: "border-black/10 bg-white text-[#1a1a1a]",
-};
+import { useReaderSettings } from "@/lib/hooks/useReaderSettings";
+import { READING_THEME_CLASS } from "@/lib/readingTheme";
 
 /**
  * Renders the Arabic matn honouring the reader's settings (font scale, tashkeel,
@@ -61,7 +56,7 @@ export function MatnDisplay({
   }
 
   return (
-    <div className={`relative rounded-xl border p-6 transition-colors ${THEME_CLASS[matnTheme]}`}>
+    <div className={`relative rounded-xl border p-6 transition-colors ${READING_THEME_CLASS[matnTheme]}`}>
       <button
         type="button"
         onClick={copy}
