@@ -29,6 +29,17 @@ export function MatnDisplay({
   const { arabicScale, showTashkeel, matnTheme } = useReaderSettings();
   const [copied, setCopied] = useState(false);
 
+  // Some source entries are empty placeholders (section markers) — say so plainly
+  // rather than rendering a blank panel.
+  if (!arabic.trim()) {
+    const note = (
+      <p className="text-sm text-ivory/40">
+        No Arabic text is recorded for this reference — the source entry is empty.
+      </p>
+    );
+    return bare ? note : <div className="surface p-6">{note}</div>;
+  }
+
   const text = showTashkeel ? arabic : stripTashkeel(arabic);
 
   async function copy() {

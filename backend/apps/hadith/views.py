@@ -29,7 +29,9 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"])
     def hadiths(self, request, slug=None):
         book = self.get_object()
-        qs = book.hadiths.select_related("book").all()
+        # The fawazahmed0 source carries empty placeholder rows (section markers
+        # with no matn) — skip them so the reader never sees blank cards.
+        qs = book.hadiths.select_related("book").exclude(matn_arabic="").all()
         chapter = request.query_params.get("chapter")
         grade = request.query_params.get("grade")
         if chapter:
@@ -67,7 +69,8 @@ class HadithViewSet(viewsets.ReadOnlyModelViewSet):
         boundaries within the same collection.
         """
         hadith = self.get_object()
-        in_book = Hadith.objects.filter(book_id=hadith.book_id)
+        # Skip empty placeholder rows so paging never lands on a blank hadith.
+        in_book = Hadith.objects.filter(book_id=hadith.book_id).exclude(matn_arabic="")
         prev = (
             in_book.filter(number_in_book__lt=hadith.number_in_book)
             .order_by("-number_in_book")
