@@ -65,13 +65,13 @@ export default async function BookPage({
 
   return (
     <section className="grid gap-8 lg:grid-cols-[260px_1fr]">
-      <aside className="space-y-2">
+      <aside className="space-y-2 lg:sticky lg:top-6 lg:self-start">
         <Link href="/reader" className="text-sm text-ivory/60 hover:text-amber-node">
           ← All collections
         </Link>
         <p className="arabic text-2xl text-amber-node">{book.name_arabic}</p>
         <h1 className="font-crimson text-2xl">{book.name_en}</h1>
-        <nav className="mt-4 max-h-[70vh] space-y-1 overflow-y-auto pr-2 text-sm">
+        <nav className="mt-4 max-h-[calc(100vh-12rem)] space-y-1 overflow-y-auto pr-2 text-sm">
           {chapters.map((ch) => (
             <Link
               key={ch.id}
