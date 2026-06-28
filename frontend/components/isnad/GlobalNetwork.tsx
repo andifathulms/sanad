@@ -8,7 +8,7 @@ import {
   forceSimulation,
   type Simulation,
 } from "d3-force";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { NetworkEdge, NetworkNode } from "@/lib/api/network";
 
@@ -23,11 +23,23 @@ const GENERATION_LABELS: Record<string, string> = {
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
+interface Match {
+  id: string;
+  label: string;
+  label_ar?: string;
+}
+interface NetworkApi {
+  find: (q: string) => Match[];
+  focus: (id: string) => void;
+}
+
 /**
- * Force-directed global narrator network on <canvas>. Scroll to zoom, drag to pan,
- * hover for a tooltip. CLICK a node to focus its ego network — its direct
- * teacher/student links light up and everything else fades — and open a side panel
- * with the narrator's details and a link to their full profile.
+ * Force-directed global narrator network on <canvas>.
+ *
+ * - Search to jump to + highlight a narrator (re-centres on them).
+ * - Click a node to focus its ego network (1-hop links light up, rest fades) and
+ *   open a side panel with details + a link to the full profile.
+ * - Double-click (or "Expand") widens the highlighted neighbourhood one hop at a time.
  */
 export function GlobalNetwork({
   nodes,
@@ -41,7 +53,10 @@ export function GlobalNetwork({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const apiRef = useRef<NetworkApi | null>(null);
   const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [matches, setMatches] = useState<Match[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,19 +83,37 @@ export function GlobalNetwork({
       .map((e) => ({ source: byId.get(e.source), target: byId.get(e.target) }))
       .filter((l) => l.source && l.target) as SimLink[];
 
-    // Adjacency for ego-network highlighting.
     const adjacency = new Map<string, Set<string>>();
+    const link = (a: string, b: string) =>
+      (adjacency.get(a) ?? adjacency.set(a, new Set()).get(a)!).add(b);
     for (const l of simLinks) {
-      (adjacency.get(l.source.id) ?? adjacency.set(l.source.id, new Set()).get(l.source.id)!).add(
-        l.target.id,
-      );
-      (adjacency.get(l.target.id) ?? adjacency.set(l.target.id, new Set()).get(l.target.id)!).add(
-        l.source.id,
-      );
+      link(l.source.id, l.target.id);
+      link(l.target.id, l.source.id);
+    }
+
+    /** Ids within `depth` hops of `startId` (excluding the start node). */
+    function bfs(startId: string, depth: number): Set<string> {
+      const seen = new Set<string>([startId]);
+      let frontier = [startId];
+      for (let d = 0; d < depth; d++) {
+        const next: string[] = [];
+        for (const id of frontier) {
+          for (const nb of adjacency.get(id) ?? []) {
+            if (!seen.has(nb)) {
+              seen.add(nb);
+              next.push(nb);
+            }
+          }
+        }
+        frontier = next;
+      }
+      seen.delete(startId);
+      return seen;
     }
 
     let selected: NetworkNode | null = null;
-    let neighborIds = new Set<string>();
+    let focusDepth = 1;
+    let focusIds = new Set<string>();
 
     const radius = (n: NetworkNode) => clamp(2.5 + Math.sqrt(n.hadiths || 1) * 0.5, 3, 22);
 
@@ -97,7 +130,7 @@ export function GlobalNetwork({
       .force("center", forceCenter(width / 2, height / 2))
       .alphaDecay(0.04);
 
-    const isFocused = (id: string) => !selected || id === selected.id || neighborIds.has(id);
+    const inFocus = (id: string) => !selected || id === selected.id || focusIds.has(id);
 
     function draw() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -105,15 +138,14 @@ export function GlobalNetwork({
       ctx.translate(tx, ty);
       ctx.scale(scale, scale);
 
-      // Edges — incident-to-selected ones light up; others fade when a node is focused.
       for (const l of simLinks) {
-        const incident = selected && (l.source.id === selected.id || l.target.id === selected.id);
+        const incident = selected && (inFocus(l.source.id) && inFocus(l.target.id));
         ctx.strokeStyle = selected
           ? incident
-            ? "rgba(226, 185, 111, 0.55)"
+            ? "rgba(226, 185, 111, 0.5)"
             : "rgba(226, 185, 111, 0.03)"
           : "rgba(226, 185, 111, 0.12)";
-        ctx.lineWidth = (incident ? 1.6 : 1) / scale;
+        ctx.lineWidth = (incident ? 1.5 : 1) / scale;
         ctx.beginPath();
         ctx.moveTo(l.source.x ?? 0, l.source.y ?? 0);
         ctx.lineTo(l.target.x ?? 0, l.target.y ?? 0);
@@ -121,8 +153,7 @@ export function GlobalNetwork({
       }
 
       for (const n of simNodes) {
-        const focused = isFocused(n.id);
-        ctx.globalAlpha = focused ? 1 : 0.12;
+        ctx.globalAlpha = inFocus(n.id) ? 1 : 0.12;
         ctx.beginPath();
         ctx.arc(n.x ?? 0, n.y ?? 0, radius(n), 0, 2 * Math.PI);
         ctx.fillStyle = n.color;
@@ -135,7 +166,6 @@ export function GlobalNetwork({
         ctx.globalAlpha = 1;
       }
 
-      // Labels: the focused set when a node is selected, else the zoom-gated set.
       ctx.font = `${11 / scale}px Inter, sans-serif`;
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
@@ -143,7 +173,7 @@ export function GlobalNetwork({
       ctx.strokeStyle = "rgba(26,26,46,0.85)";
       for (const n of simNodes) {
         const r = radius(n);
-        const show = selected ? isFocused(n.id) : scale * r >= 22;
+        const show = selected ? inFocus(n.id) : scale * r >= 22;
         if (!show) continue;
         const name = n.label_latin || n.label;
         if (!name) continue;
@@ -176,37 +206,72 @@ export function GlobalNetwork({
         return;
       }
       const gen = GENERATION_LABELS[selected.generation] ?? selected.generation;
+      const hop = focusDepth === 1 ? "direct" : `${focusDepth}-hop`;
       panel.style.display = "block";
       panel.innerHTML = `
         <div style="font-weight:600">${selected.label_latin || selected.label || "Unknown"}</div>
         ${selected.label_latin && selected.label ? `<div style="font-family:Amiri,serif;font-size:16px;color:#E2B96F">${selected.label}</div>` : ""}
         <div style="color:rgba(248,244,238,0.55);margin-top:4px">${gen} · ${selected.reliability}</div>
-        <div style="color:rgba(248,244,238,0.55)">${selected.hadiths.toLocaleString()} hadiths · ${neighborIds.size} connection(s)</div>
+        <div style="color:rgba(248,244,238,0.55)">${selected.hadiths.toLocaleString()} hadiths</div>
+        <div style="color:rgba(226,185,111,0.85);margin-top:4px">${focusIds.size} ${hop} connection(s)</div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button data-act="open" style="flex:1;border-radius:8px;background:#0F3460;color:#F8F4EE;padding:6px 10px;font-size:12px">Open profile →</button>
+          <button data-act="expand" style="border-radius:8px;border:1px solid rgba(255,255,255,0.15);color:rgba(248,244,238,0.7);padding:6px 10px;font-size:12px">Expand</button>
           <button data-act="clear" style="border-radius:8px;border:1px solid rgba(255,255,255,0.15);color:rgba(248,244,238,0.7);padding:6px 10px;font-size:12px">Clear</button>
         </div>`;
       panel.querySelector<HTMLButtonElement>('[data-act="open"]')?.addEventListener("click", () => {
         if (selected) router.push(`/narrator/${selected.id}`);
+      });
+      panel.querySelector<HTMLButtonElement>('[data-act="expand"]')?.addEventListener("click", () => {
+        if (selected) selectNode(selected, focusDepth + 1);
       });
       panel
         .querySelector<HTMLButtonElement>('[data-act="clear"]')
         ?.addEventListener("click", () => clearSelection());
     }
 
-    function selectNode(n: NetworkNode) {
+    function selectNode(n: NetworkNode, depth = 1) {
       selected = n;
-      neighborIds = adjacency.get(n.id) ?? new Set();
+      focusDepth = clamp(depth, 1, 6);
+      focusIds = bfs(n.id, focusDepth);
       hideTooltip();
       renderPanel();
       draw();
     }
     function clearSelection() {
       selected = null;
-      neighborIds = new Set();
+      focusDepth = 1;
+      focusIds = new Set();
       renderPanel();
       draw();
     }
+    function centreOn(n: NetworkNode) {
+      scale = clamp(2, 0.3, 8);
+      tx = width / 2 - (n.x ?? 0) * scale;
+      ty = height / 2 - (n.y ?? 0) * scale;
+    }
+
+    // Imperative API for the React-rendered search box.
+    apiRef.current = {
+      find: (q: string) => {
+        const lower = q.toLowerCase();
+        return simNodes
+          .filter(
+            (n) =>
+              (n.label_latin ?? "").toLowerCase().includes(lower) ||
+              (n.label ?? "").includes(q),
+          )
+          .slice(0, 8)
+          .map((n) => ({ id: n.id, label: n.label_latin || n.label || n.id, label_ar: n.label }));
+      },
+      focus: (id: string) => {
+        const n = byId.get(id);
+        if (!n) return;
+        selectNode(n, 1);
+        centreOn(n);
+        draw();
+      },
+    };
 
     let panning = false;
     let moved = false;
@@ -222,8 +287,16 @@ export function GlobalNetwork({
       if (moved) return;
       const rect = canvas!.getBoundingClientRect();
       const hit = nodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
-      if (hit) selectNode(hit);
+      if (hit) selectNode(hit, 1);
       else clearSelection();
+    }
+    function onDblClick(ev: MouseEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      const hit = nodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      if (!hit) return;
+      // Same node → widen one more hop; different node → start at 2 hops.
+      if (selected && hit.id === selected.id) selectNode(hit, focusDepth + 1);
+      else selectNode(hit, 2);
     }
 
     function showTooltip(n: NetworkNode, mx: number, my: number) {
@@ -283,20 +356,58 @@ export function GlobalNetwork({
     window.addEventListener("mouseup", onUp);
     canvas.addEventListener("mousemove", onMove);
     canvas.addEventListener("mouseleave", hideTooltip);
+    canvas.addEventListener("dblclick", onDblClick);
     canvas.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
       sim.stop();
+      apiRef.current = null;
       canvas.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
       canvas.removeEventListener("mousemove", onMove);
       canvas.removeEventListener("mouseleave", hideTooltip);
+      canvas.removeEventListener("dblclick", onDblClick);
       canvas.removeEventListener("wheel", onWheel);
     };
   }, [nodes, edges, height, router]);
 
+  function onSearch(v: string) {
+    setQuery(v);
+    setMatches(v.trim().length >= 2 ? (apiRef.current?.find(v) ?? []) : []);
+  }
+  function pick(m: Match) {
+    apiRef.current?.focus(m.id);
+    setQuery("");
+    setMatches([]);
+  }
+
   return (
     <div className="relative">
+      {/* Search to jump / highlight a narrator in the loaded network */}
+      <div className="absolute left-3 top-3 z-20 w-60">
+        <input
+          value={query}
+          onChange={(e) => onSearch(e.target.value)}
+          placeholder="Find a narrator…"
+          className="w-full rounded-lg border border-white/10 bg-indigo-deep/95 px-3 py-2 text-sm text-ivory outline-none focus:border-amber-node"
+        />
+        {matches.length > 0 && (
+          <ul className="mt-1 max-h-64 overflow-y-auto rounded-lg border border-white/10 bg-indigo-deep/95 shadow-xl">
+            {matches.map((m) => (
+              <li key={m.id}>
+                <button
+                  onClick={() => pick(m)}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-white/5"
+                >
+                  <span className="text-ivory/85">{m.label}</span>
+                  {m.label_ar && <span className="arabic text-amber-node/80">{m.label_ar}</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <canvas
         ref={canvasRef}
         style={{ width: "100%", height }}
@@ -308,10 +419,11 @@ export function GlobalNetwork({
       />
       <div
         ref={panelRef}
-        className="absolute right-3 top-3 z-20 hidden w-56 rounded-xl border border-white/10 bg-indigo-deep/95 p-4 text-xs text-ivory shadow-xl"
+        className="absolute right-3 top-3 z-20 hidden w-60 rounded-xl border border-white/10 bg-indigo-deep/95 p-4 text-xs text-ivory shadow-xl"
       />
       <p className="mt-2 text-xs text-ivory/40">
-        Scroll to zoom · drag to pan · hover for details · click a node to focus its connections
+        Scroll to zoom · drag to pan · search or click to focus a narrator · double-click
+        (or Expand) to widen the neighbourhood
       </p>
     </div>
   );

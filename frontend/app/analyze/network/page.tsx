@@ -19,7 +19,7 @@ export default function GlobalNetworkPage() {
   const [data, setData] = useState<NetworkResponse | null>(null);
   const [generation, setGeneration] = useState("");
   const [reliability, setReliability] = useState("");
-  const [limit, setLimit] = useState(200);
+  const [limit, setLimit] = useState(50);
   const [loading, setLoading] = useState(false);
 
   async function load() {
@@ -51,7 +51,8 @@ export default function GlobalNetworkPage() {
           <h1 className="font-crimson text-3xl font-bold">Narrator Network</h1>
           <p className="text-sm text-ivory/60">
             The most-central narrators and how they connect. Node size = appearances,
-            color = reliability. Click any node to open its profile.
+            color = reliability. Search to jump to a narrator, click to focus their
+            connections, double-click to widen the neighbourhood.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-sm">
@@ -82,7 +83,7 @@ export default function GlobalNetworkPage() {
             onChange={(e) => setLimit(Number(e.target.value))}
             className="rounded-lg border border-white/10 bg-indigo-navy px-3 py-2"
           >
-            {[100, 200, 300, 500].map((n) => (
+            {[50, 100, 200, 300, 500].map((n) => (
               <option key={n} value={n}>
                 Top {n}
               </option>
