@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { RELIABILITY_COLORS } from "@/lib/grading";
+import { RELIABILITY_COLORS, RELIABILITY_LABELS } from "@/lib/grading";
+import type { Reliability } from "@/lib/api/types";
 import { searchNarrators } from "@/lib/api/isnad";
 import { getNarratorPath, type PathNarrator } from "@/lib/api/network";
 import type { Narrator } from "@/lib/api/types";
@@ -170,23 +171,38 @@ export default function NarratorPathPage() {
         <div className="space-y-3">
           {path && path.length > 0 ? (
             <>
-              <p className="text-sm text-ivory/50">{length} hop(s)</p>
+              <p className="text-sm text-ivory/50">
+                {length} hop(s) · each step is a recorded teacher↔student transmission
+              </p>
               <div className="flex flex-wrap items-center gap-2">
-                {path.map((n, i) => (
-                  <div key={n.id} className="flex items-center gap-2">
-                    <Link
-                      href={`/narrator/${n.id}`}
-                      className="flex items-center gap-2 rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 hover:border-amber-node/50"
-                    >
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: RELIABILITY_COLORS[n.reliability_grade as keyof typeof RELIABILITY_COLORS] ?? "#95A5A6" }}
-                      />
-                      <span className="arabic text-base">{n.name_arabic}</span>
-                    </Link>
-                    {i < path.length - 1 && <span className="text-ivory/30">→</span>}
-                  </div>
-                ))}
+                {path.map((n, i) => {
+                  const grade = (n.reliability_grade as Reliability) ?? "unknown";
+                  const color = RELIABILITY_COLORS[grade] ?? "#95A5A6";
+                  return (
+                    <div key={n.id} className="flex items-center gap-2">
+                      <Link
+                        href={`/narrator/${n.id}`}
+                        title={RELIABILITY_LABELS[grade]}
+                        className="flex items-center gap-2 rounded-lg border border-white/10 bg-indigo-navy px-3 py-2 hover:border-amber-node/50"
+                      >
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="flex flex-col leading-tight">
+                          <span className="arabic text-base">{n.name_arabic}</span>
+                          {n.name_transliteration && (
+                            <span className="text-xs text-ivory/50">{n.name_transliteration}</span>
+                          )}
+                          <span className="text-[10px] uppercase tracking-wide" style={{ color }}>
+                            {RELIABILITY_LABELS[grade]}
+                          </span>
+                        </span>
+                      </Link>
+                      {i < path.length - 1 && <span className="text-ivory/30">→</span>}
+                    </div>
+                  );
+                })}
               </div>
             </>
           ) : (

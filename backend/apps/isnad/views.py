@@ -178,7 +178,9 @@ class NarratorPathView(APIView):
             {
                 "id": nid,
                 "name_arabic": by_id[nid].name_arabic,
+                "name_transliteration": by_id[nid].name_transliteration,
                 "reliability_grade": by_id[nid].reliability_grade,
+                "generation": by_id[nid].generation,
             }
             for nid in path_ids
             if nid in by_id

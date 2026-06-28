@@ -30,7 +30,9 @@ export interface NetworkResponse {
 export interface PathNarrator {
   id: number;
   name_arabic: string;
+  name_transliteration?: string;
   reliability_grade: string;
+  generation?: string;
 }
 
 export const getGlobalNetwork = (params: {
