@@ -24,9 +24,10 @@ const GENERATION_LABELS: Record<string, string> = {
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 /**
- * Force-directed global narrator network on <canvas> (scales to hundreds of
- * nodes). Scroll to zoom, drag to pan, hover for a node tooltip; Latin names
- * appear once zoomed in. Click a node to open its profile.
+ * Force-directed global narrator network on <canvas>. Scroll to zoom, drag to pan,
+ * hover for a tooltip. CLICK a node to focus its ego network — its direct
+ * teacher/student links light up and everything else fades — and open a side panel
+ * with the narrator's details and a link to their full profile.
  */
 export function GlobalNetwork({
   nodes,
@@ -39,11 +40,13 @@ export function GlobalNetwork({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const tooltip = tooltipRef.current;
+    const panel = panelRef.current;
     if (!canvas) return;
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -54,7 +57,6 @@ export function GlobalNetwork({
     canvas.width = width * dpr;
     canvas.height = height * dpr;
 
-    // View transform (graph → screen): screen = graph * scale + (tx, ty).
     let scale = 1;
     let tx = 0;
     let ty = 0;
@@ -66,8 +68,20 @@ export function GlobalNetwork({
       .map((e) => ({ source: byId.get(e.source), target: byId.get(e.target) }))
       .filter((l) => l.source && l.target) as SimLink[];
 
-    // Capped sqrt scale: prominent narrators read larger, but no single node
-    // balloons into a screen-filling blob that swallows its neighbours.
+    // Adjacency for ego-network highlighting.
+    const adjacency = new Map<string, Set<string>>();
+    for (const l of simLinks) {
+      (adjacency.get(l.source.id) ?? adjacency.set(l.source.id, new Set()).get(l.source.id)!).add(
+        l.target.id,
+      );
+      (adjacency.get(l.target.id) ?? adjacency.set(l.target.id, new Set()).get(l.target.id)!).add(
+        l.source.id,
+      );
+    }
+
+    let selected: NetworkNode | null = null;
+    let neighborIds = new Set<string>();
+
     const radius = (n: NetworkNode) => clamp(2.5 + Math.sqrt(n.hadiths || 1) * 0.5, 3, 22);
 
     const sim: Simulation<NetworkNode, SimLink> = forceSimulation(simNodes)
@@ -79,11 +93,11 @@ export function GlobalNetwork({
           .strength(0.15),
       )
       .force("charge", forceManyBody().strength(-120))
-      // Hard collision so circles push apart instead of stacking on top of each
-      // other — the single biggest readability win when zoomed in.
       .force("collide", forceCollide<NetworkNode>().radius((n) => radius(n) + 4).iterations(2))
       .force("center", forceCenter(width / 2, height / 2))
       .alphaDecay(0.04);
+
+    const isFocused = (id: string) => !selected || id === selected.id || neighborIds.has(id);
 
     function draw() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -91,9 +105,15 @@ export function GlobalNetwork({
       ctx.translate(tx, ty);
       ctx.scale(scale, scale);
 
-      ctx.strokeStyle = "rgba(226, 185, 111, 0.12)";
-      ctx.lineWidth = 1 / scale;
+      // Edges — incident-to-selected ones light up; others fade when a node is focused.
       for (const l of simLinks) {
+        const incident = selected && (l.source.id === selected.id || l.target.id === selected.id);
+        ctx.strokeStyle = selected
+          ? incident
+            ? "rgba(226, 185, 111, 0.55)"
+            : "rgba(226, 185, 111, 0.03)"
+          : "rgba(226, 185, 111, 0.12)";
+        ctx.lineWidth = (incident ? 1.6 : 1) / scale;
         ctx.beginPath();
         ctx.moveTo(l.source.x ?? 0, l.source.y ?? 0);
         ctx.lineTo(l.target.x ?? 0, l.target.y ?? 0);
@@ -101,14 +121,21 @@ export function GlobalNetwork({
       }
 
       for (const n of simNodes) {
+        const focused = isFocused(n.id);
+        ctx.globalAlpha = focused ? 1 : 0.12;
         ctx.beginPath();
         ctx.arc(n.x ?? 0, n.y ?? 0, radius(n), 0, 2 * Math.PI);
         ctx.fillStyle = n.color;
         ctx.fill();
+        if (selected && n.id === selected.id) {
+          ctx.lineWidth = 2.5 / scale;
+          ctx.strokeStyle = "#E2B96F";
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
       }
 
-      // Reveal Latin labels once they're legible. Larger (more central) nodes get
-      // their label sooner; a dark halo keeps text readable over any node colour.
+      // Labels: the focused set when a node is selected, else the zoom-gated set.
       ctx.font = `${11 / scale}px Inter, sans-serif`;
       ctx.textAlign = "left";
       ctx.textBaseline = "middle";
@@ -116,9 +143,8 @@ export function GlobalNetwork({
       ctx.strokeStyle = "rgba(26,26,46,0.85)";
       for (const n of simNodes) {
         const r = radius(n);
-        // Label threshold eases as node size grows, so the network never shows
-        // every label at once (which is what made it unreadable).
-        if (scale * r < 22) continue;
+        const show = selected ? isFocused(n.id) : scale * r >= 22;
+        if (!show) continue;
         const name = n.label_latin || n.label;
         if (!name) continue;
         const lx = (n.x ?? 0) + r + 2 / scale;
@@ -131,10 +157,7 @@ export function GlobalNetwork({
 
     sim.on("tick", draw);
 
-    const toGraph = (mx: number, my: number) => ({
-      gx: (mx - tx) / scale,
-      gy: (my - ty) / scale,
-    });
+    const toGraph = (mx: number, my: number) => ({ gx: (mx - tx) / scale, gy: (my - ty) / scale });
 
     function nodeAt(mx: number, my: number): NetworkNode | null {
       const { gx, gy } = toGraph(mx, my);
@@ -146,7 +169,45 @@ export function GlobalNetwork({
       return null;
     }
 
-    // --- Pan + click (drag past a threshold = pan, not a click) ---
+    function renderPanel() {
+      if (!panel) return;
+      if (!selected) {
+        panel.style.display = "none";
+        return;
+      }
+      const gen = GENERATION_LABELS[selected.generation] ?? selected.generation;
+      panel.style.display = "block";
+      panel.innerHTML = `
+        <div style="font-weight:600">${selected.label_latin || selected.label || "Unknown"}</div>
+        ${selected.label_latin && selected.label ? `<div style="font-family:Amiri,serif;font-size:16px;color:#E2B96F">${selected.label}</div>` : ""}
+        <div style="color:rgba(248,244,238,0.55);margin-top:4px">${gen} · ${selected.reliability}</div>
+        <div style="color:rgba(248,244,238,0.55)">${selected.hadiths.toLocaleString()} hadiths · ${neighborIds.size} connection(s)</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button data-act="open" style="flex:1;border-radius:8px;background:#0F3460;color:#F8F4EE;padding:6px 10px;font-size:12px">Open profile →</button>
+          <button data-act="clear" style="border-radius:8px;border:1px solid rgba(255,255,255,0.15);color:rgba(248,244,238,0.7);padding:6px 10px;font-size:12px">Clear</button>
+        </div>`;
+      panel.querySelector<HTMLButtonElement>('[data-act="open"]')?.addEventListener("click", () => {
+        if (selected) router.push(`/narrator/${selected.id}`);
+      });
+      panel
+        .querySelector<HTMLButtonElement>('[data-act="clear"]')
+        ?.addEventListener("click", () => clearSelection());
+    }
+
+    function selectNode(n: NetworkNode) {
+      selected = n;
+      neighborIds = adjacency.get(n.id) ?? new Set();
+      hideTooltip();
+      renderPanel();
+      draw();
+    }
+    function clearSelection() {
+      selected = null;
+      neighborIds = new Set();
+      renderPanel();
+      draw();
+    }
+
     let panning = false;
     let moved = false;
     let last = { x: 0, y: 0 };
@@ -158,11 +219,11 @@ export function GlobalNetwork({
     }
     function onUp(ev: MouseEvent) {
       panning = false;
-      if (!moved) {
-        const rect = canvas!.getBoundingClientRect();
-        const hit = nodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
-        if (hit) router.push(`/narrator/${hit.id}`);
-      }
+      if (moved) return;
+      const rect = canvas!.getBoundingClientRect();
+      const hit = nodeAt(ev.clientX - rect.left, ev.clientY - rect.top);
+      if (hit) selectNode(hit);
+      else clearSelection();
     }
 
     function showTooltip(n: NetworkNode, mx: number, my: number) {
@@ -211,7 +272,6 @@ export function GlobalNetwork({
       const my = ev.clientY - rect.top;
       const factor = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
       const newScale = clamp(scale * factor, 0.3, 8);
-      // Keep the point under the cursor fixed while zooming.
       tx = mx - ((mx - tx) * newScale) / scale;
       ty = my - ((my - ty) * newScale) / scale;
       scale = newScale;
@@ -246,8 +306,12 @@ export function GlobalNetwork({
         ref={tooltipRef}
         className="pointer-events-none absolute z-10 hidden max-w-[220px] rounded-lg border border-white/10 bg-indigo-deep/95 px-3 py-2 text-xs text-ivory shadow-lg"
       />
+      <div
+        ref={panelRef}
+        className="absolute right-3 top-3 z-20 hidden w-56 rounded-xl border border-white/10 bg-indigo-deep/95 p-4 text-xs text-ivory shadow-xl"
+      />
       <p className="mt-2 text-xs text-ivory/40">
-        Scroll to zoom · drag to pan · hover a node for details · click to open the profile
+        Scroll to zoom · drag to pan · hover for details · click a node to focus its connections
       </p>
     </div>
   );
