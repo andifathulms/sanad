@@ -147,6 +147,30 @@ new `sha-…` first. Rollback = set them back to the previous sha and repeat.
 You can automate this with a webhook/watchtower later, but the manual three
 lines are the whole story.
 
+### 4.1 Per-release data actions (beyond `migrate`)
+
+`migrate` is always required and idempotent — run it every upgrade. A few
+features also need a **one-off data/seed command** that is *not* a schema
+migration. Each is one-time per environment; skip any that are already baked
+into a dump you restored (Option A). Keep this table updated as features land.
+
+| Shipped feature | Migration? (`migrate` covers it) | Extra one-off command on the VM |
+|---|---|---|
+| Scholarly gradings (`HadithGrading`) | ✅ `hadith.0002` | — |
+| Translation provenance (`translation_*_source`) | ✅ `hadith.0003` — **backfills existing rows** | — |
+| `/explore` topics | — | `run seed_topics` |
+| Empty-hadith filtering, clickable cards, reader/network UI | — (code only) | — |
+
+```bash
+# If your prod DB predates these, on the VM:
+run() { docker compose -f docker-compose.prod.yml run --rm backend python manage.py "$@"; }
+run migrate          # applies hadith.0002 (gradings) + hadith.0003 (translation sources, backfilled)
+run seed_topics      # populates /explore (8 curated topics) — only if not already seeded
+```
+
+> Restored a fresh dump taken from your local DB *after* running these? Then
+> they're already in the data — just `migrate` (no-op if up to date) and you're done.
+
 ---
 
 ## 5. The data-pipeline & "do I rerun normalization?" answer
