@@ -73,6 +73,11 @@ def extract_chain(matn_arabic: str) -> list[str]:
         name = _clean_name(span)
         if not name or name in _RELATIONAL:
             continue
+        # Trim trailing matn words (e.g. "أبا هريرة إن" -> "أبا هريرة") and drop spans
+        # that hold no real name, so chains carry narrators — not matn fragments.
+        name = refine_name(name) or name
+        if not is_plausible_name(name):
+            continue
         if MIN_NAME_LEN <= len(name) <= MAX_NAME_LEN:
             names.append(name)
     return names
@@ -104,6 +109,24 @@ _STOPWORDS = {
         "أني", "اني", "أنا", "انا", "نحن", "هو", "هي", "هم", "عند", "فلما", "ثم",
         "حتى", "وهو", "وهي", "مر", "مرت", "أقبل", "اقبل", "سئل", "سأل", "سال",
         "نهى", "أمر", "امر", "قام", "قعد", "بعث", "كتب", "نزل", "نزلت",
+        # Particles / conjunctions that open the matn after the last narrator.
+        "إن", "ان", "أن", "إذ", "اذ", "قد", "لقد", "فإن", "فان", "لكن", "ولكن",
+        "إنه", "انه", "إنها", "انها", "إنك", "انك", "إنكم", "انكم", "إنما", "انما",
+        # Further verb conjugations (1st/2nd/3rd person) seen captured into spans.
+        "أقبلت", "اقبلت", "فقد", "فقدت", "فقدنا", "يكره", "كره", "كرهت", "ذكر",
+        "ذكرت", "ذكروا", "ذكرنا", "يذكر", "صحب", "صحبت", "قاعدت", "شهد", "شهدت",
+        "أشهد", "اشهد", "يكثر", "كثر", "زعم", "يزعم", "تزعمون", "سمعنا", "شكا",
+        "اشتكى", "مرض", "توفي", "مات", "عاد", "سافر", "صلى", "صام", "حج", "اعتمر",
+        "غزا", "قدم", "قدمت", "وقع", "وقعت", "فعل", "فعلت", "وجد", "وجدت", "علم",
+        "علمت", "عرف", "عرفت", "سمعته", "رايته", "رأيته",
+    )
+}
+
+# Common matn nouns that are not names — reject even as a lone token.
+_MATN_NOUNS = {
+    _tok(w) for w in (
+        "حديث", "حديثا", "الحديث", "شيء", "شيئا", "كلام", "قول", "خبر", "أمرا",
+        "امرا", "حاجة", "حاجه", "سنة", "سنه", "صلاة", "صلاه", "زمان", "وقت",
     )
 }
 
@@ -140,7 +163,11 @@ def is_plausible_name(name: str) -> bool:
     norm = [_tok(t) for t in toks]
     if any(t in _STOPWORDS for t in norm):
         return False
+    # A lone common matn noun (e.g. "حديثا" = "a hadith") is not a narrator.
+    if all(t in _MATN_NOUNS for t in norm):
+        return False
     # Needs at least one real name token (not a function word / bare particle).
     return any(
-        len(t) >= 2 and t not in _NONNAME and t not in _PARTICLES for t in norm
+        len(t) >= 2 and t not in _NONNAME and t not in _PARTICLES and t not in _MATN_NOUNS
+        for t in norm
     )
