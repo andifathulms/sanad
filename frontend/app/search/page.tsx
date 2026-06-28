@@ -61,15 +61,18 @@ function ResultCard({ h, q, lang }: { h: HadithListItem; q: string; lang: Lang }
         : h.translation_en || h.translation_id;
   const snip = snippet(field, q);
   return (
-    <article className="surface space-y-2 p-4">
+    <article className="surface relative space-y-2 p-4 transition-colors hover:border-amber-node/30">
       <div className="flex items-center justify-between gap-2">
         <Link
           href={`/reader/${h.book_slug}/${h.id}`}
-          className="font-mono text-sm text-ivory/70 hover:text-amber-node"
+          className="font-mono text-sm text-ivory/70 before:absolute before:inset-0 hover:text-amber-node"
+          aria-label={`Open ${h.global_reference}`}
         >
           {h.global_reference}
         </Link>
-        <GradeBadge grade={h.grade} source={h.grade_source} />
+        <span className="relative z-10">
+          <GradeBadge grade={h.grade} source={h.grade_source} />
+        </span>
       </div>
       <p className={lang === "ar" ? "arabic text-xl" : "max-w-[72ch] leading-relaxed text-ivory/85"}>
         {highlight(snip, q)}

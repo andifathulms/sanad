@@ -10,15 +10,20 @@ import { CardTranslation } from "./CardTranslation";
  */
 export function HadithCard({ hadith }: { hadith: HadithListItem }) {
   return (
-    <article className="surface space-y-4 p-6">
+    // Stretched-link pattern: the whole card opens the hadith, while the copy
+    // button and grade popover stay clickable (raised above the overlay link).
+    <article className="surface relative space-y-4 p-6 transition-colors hover:border-amber-node/30">
       <header className="flex items-center justify-between">
         <Link
           href={`/reader/${hadith.book_slug}/${hadith.id}`}
-          className="font-mono text-sm text-ivory/60 hover:text-amber-node"
+          className="font-mono text-sm text-ivory/60 before:absolute before:inset-0 hover:text-amber-node"
+          aria-label={`Open ${hadith.global_reference}`}
         >
           {hadith.global_reference}
         </Link>
-        <GradeBadge grade={hadith.grade} source={hadith.grade_source} />
+        <span className="relative z-10">
+          <GradeBadge grade={hadith.grade} source={hadith.grade_source} />
+        </span>
       </header>
 
       {hadith.grade === "maudu" && (
