@@ -2,15 +2,13 @@ import Link from "next/link";
 import type { HadithListItem } from "@/lib/api/types";
 import { GradeBadge } from "./GradeBadge";
 import { MatnDisplay } from "./MatnDisplay";
+import { CardTranslation } from "./CardTranslation";
 
 /**
  * Reader card. Arabic matn is rendered in full (never truncated/altered) and the
  * grade badge is always present. Da'if/Maudu' narrations carry a visible warning.
  */
 export function HadithCard({ hadith }: { hadith: HadithListItem }) {
-  const translation = hadith.translation_id || hadith.translation_en;
-  const usingFallback = !hadith.translation_id && !!hadith.translation_en;
-
   return (
     <article className="surface space-y-4 p-6">
       <header className="flex items-center justify-between">
@@ -36,16 +34,7 @@ export function HadithCard({ hadith }: { hadith: HadithListItem }) {
 
       <MatnDisplay arabic={hadith.matn_arabic} baseRem={1.5} bare />
 
-      {translation && (
-        <div className="border-t border-white/5 pt-3 text-ivory/80">
-          <p>{translation}</p>
-          {usingFallback && (
-            <p className="mt-1 text-xs text-ivory/40">
-              Indonesian translation not yet available — showing English.
-            </p>
-          )}
-        </div>
-      )}
+      <CardTranslation en={hadith.translation_en} id={hadith.translation_id} />
     </article>
   );
 }
