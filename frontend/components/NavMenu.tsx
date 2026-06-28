@@ -44,7 +44,7 @@ export function NavMenu() {
   const [openMobile, setOpenMobile] = useState(false);
 
   return (
-    <div className="flex items-center gap-1 text-sm text-ivory/80">
+    <div data-focus-hide className="flex items-center gap-1 text-sm text-ivory/80">
       {/* Desktop: grouped flyout menus */}
       <div className="hidden items-center gap-1 sm:flex">
         {GROUPS.map((group) => {

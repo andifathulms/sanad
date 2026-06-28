@@ -22,8 +22,9 @@ body {
   @apply bg-indigo-navy rounded-xl border border-white/5;
 }
 
-/* Immersive reading: hide the site header + in-page chrome, leaving matn + translation. */
-body.reading-focus header,
+/* Immersive reading: hide in-page chrome and the nav links, leaving matn +
+   translation. The header bar stays (brand + settings gear) so reading
+   preferences remain reachable; the floating Focus button exits. */
 body.reading-focus [data-focus-hide] {
   display: none !important;
 }
