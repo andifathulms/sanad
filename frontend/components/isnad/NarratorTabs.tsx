@@ -93,12 +93,19 @@ export function NarratorTabs({ narratorId }: { narratorId: number }) {
       {loading && <p className="text-ivory/60">Loading…</p>}
 
       {!loading && tab !== "hadiths" && (
-        <div className="grid gap-3 md:grid-cols-2">
-          {people.length ? (
-            people.map((n) => <NarratorListCard key={n.id} narrator={n} />)
-          ) : (
-            <p className="text-ivory/50">No {tab} recorded in the corpus yet.</p>
-          )}
+        <div className="space-y-3">
+          <p className="text-xs text-ivory/40">
+            Derived automatically from chain adjacency in the corpus (who narrates from
+            whom). This is structural extraction, not curated rijal data — rare
+            misreadings are possible.
+          </p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {people.length ? (
+              people.map((n) => <NarratorListCard key={n.id} narrator={n} />)
+            ) : (
+              <p className="text-ivory/50">No {tab} recorded in the corpus yet.</p>
+            )}
+          </div>
         </div>
       )}
 
