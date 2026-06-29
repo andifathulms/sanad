@@ -20,7 +20,7 @@ class Command(BaseCommand):
     help = "Seed curated topics and keyword-tag hadiths into them."
 
     def add_arguments(self, parser):
-        parser.add_argument("--per-topic", type=int, default=50)
+        parser.add_argument("--per-topic", type=int, default=200)
 
     def handle(self, *args, **opts):
         limit = opts["per_topic"]
@@ -32,7 +32,10 @@ class Command(BaseCommand):
             q = Q()
             for kw in keywords:
                 q |= Q(translation_en__icontains=kw)
-            hadiths = Hadith.objects.filter(q).values_list("id", flat=True)[:limit]
+            matches = Hadith.objects.filter(q).values_list("id", flat=True)
+            # limit <= 0 → link every match, so the topic count reflects the true
+            # number of narrations (varied), not a flat cap.
+            hadiths = matches if limit <= 0 else matches[:limit]
             linked = 0
             for hid in hadiths:
                 _, created = HadithTopic.objects.get_or_create(
