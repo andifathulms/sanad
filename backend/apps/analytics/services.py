@@ -12,6 +12,7 @@ from django.db.models import Count
 
 from apps.analytics.models import BookGradeStats, NarratorStats, WordFrequencyHadith
 from apps.hadith.models import Hadith, HadithParallel
+from apps.hadith.text_utils import normalize_arabic
 
 CACHE_TTL = 60 * 60 * 24  # 24h
 
@@ -21,13 +22,18 @@ def get_word_frequency_hadith(word: str, book_slug: str | None = None) -> dict:
 
     Reads from the precomputed word_frequency_hadith table.
     """
-    cache_key = f"analytics:wordfreq:{word}:{book_slug or 'all'}"
+    # The lemma index is built from the *normalized* matn (tashkeel stripped,
+    # ة→ه, alef/ya unified), so the query must be normalized the same way —
+    # otherwise natural Arabic input ("الجنة", "الزكاة") never matches the stored
+    # lemma ("الجنه", "الزكاه") and falsely reports 0.
+    norm = normalize_arabic(word)
+    cache_key = f"analytics:wordfreq:{norm}:{book_slug or 'all'}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
 
     try:
-        row = WordFrequencyHadith.objects.get(lemma=word)
+        row = WordFrequencyHadith.objects.get(lemma=norm)
     except WordFrequencyHadith.DoesNotExist:
         result = {"word": word, "total": 0, "per_book": [], "sample_hadiths": []}
         cache.set(cache_key, result, CACHE_TTL)
@@ -41,7 +47,7 @@ def get_word_frequency_hadith(word: str, book_slug: str | None = None) -> dict:
         total = row.total_count
 
     sample = list(
-        Hadith.objects.filter(matn_clean__icontains=word)
+        Hadith.objects.filter(matn_clean__icontains=norm)
         .values("id", "global_reference", "book__slug")[:5]
     )
     result = {
