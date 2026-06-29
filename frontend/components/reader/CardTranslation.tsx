@@ -27,7 +27,7 @@ export function CardTranslation({ en, id }: { en: string; id: string }) {
   return (
     <div className="space-y-2 border-t border-white/5 pt-3 text-ivory/80">
       {rows.map((r, i) => (
-        <p key={i} className="max-w-[72ch] leading-relaxed">
+        <p key={i} className="leading-relaxed">
           {r.label && <span className="mr-2 text-xs uppercase text-ivory/35">{r.label}</span>}
           {r.text}
         </p>

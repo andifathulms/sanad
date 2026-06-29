@@ -51,10 +51,15 @@ export default function WordFrequencyPage() {
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h1 className="font-crimson text-3xl font-bold">Word frequency</h1>
+        <h1 className="font-crimson text-3xl font-bold">Arabic word frequency</h1>
         <p className="text-sm text-ivory/60">
-          How often an Arabic word appears across the corpus, by book. Counts
-          come from the precomputed frequency index (tashkeel-insensitive).
+          How often an <strong>Arabic</strong> word appears in the matn across the corpus,
+          by book — tashkeel-insensitive, so type it however you like. Looking for an
+          English or Indonesian word?{" "}
+          <Link href="/search" className="text-amber-node hover:underline">
+            Use Search
+          </Link>{" "}
+          instead.
         </p>
       </header>
 
