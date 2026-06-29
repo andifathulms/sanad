@@ -158,18 +158,30 @@ into a dump you restored (Option A). Keep this table updated as features land.
 |---|---|---|
 | Scholarly gradings (`HadithGrading`) | ✅ `hadith.0002` | — |
 | Translation provenance (`translation_*_source`) | ✅ `hadith.0003` — **backfills existing rows** | — |
-| `/explore` topics | — | `run seed_topics` |
+| `/explore` topics (20 subjects, real counts) | — | `run seed_topics --per-topic 0` |
+| Rijal extraction cleanup (fewer matn-fragment narrators) | — | `prune_narrators --apply` → `build_narrator_graph` → `compute_stats` |
 | Empty-hadith filtering, clickable cards, reader/network UI | — (code only) | — |
 
 ```bash
 # If your prod DB predates these, on the VM:
 run() { docker compose -f docker-compose.prod.yml run --rm backend python manage.py "$@"; }
-run migrate          # applies hadith.0002 (gradings) + hadith.0003 (translation sources, backfilled)
-run seed_topics      # populates /explore (8 curated topics) — only if not already seeded
+run migrate                      # hadith.0002 (gradings) + hadith.0003 (translation sources)
+run seed_topics --per-topic 0    # /explore: 20 topics, uncapped (true counts). Idempotent.
+
+# Narrator name-cleaning improved (extraction.py). Re-clean + rebuild the graph so
+# teacher/student lists drop matn-fragment artifacts. Order matters (stats last):
+run prune_narrators --apply      # merge/trim/delete noisy extracted names
+run build_narrator_graph         # rebuild teacher→student edges + cache global graph
+run compute_stats                # refresh narrator totals + centrality
 ```
 
 > Restored a fresh dump taken from your local DB *after* running these? Then
 > they're already in the data — just `migrate` (no-op if up to date) and you're done.
+>
+> A full `build_isnad --reset` (re-extracting every chain with the improved
+> heuristics) would clean residual single-chain mis-orderings too, but it wipes
+> narrators and cascades the whole isnad pipeline (grades, transliteration,
+> prune, collapse) — only worth it on a fresh bootstrap, not a routine upgrade.
 
 ---
 
