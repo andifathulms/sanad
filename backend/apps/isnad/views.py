@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from apps.hadith.models import Hadith
 
 from . import graph as graph_engine
+from .extraction import is_plausible_name
 from .graph import RELIABILITY_COLORS
 from .models import HadithNarrator, Narrator, NarratorLink
 from .serializers import (
@@ -29,14 +30,20 @@ class NarratorViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["get"])
     def teachers(self, request, pk=None):
         ids = self.get_object().teachers.values_list("teacher_id", flat=True)
-        qs = Narrator.objects.filter(id__in=ids)
-        return Response(NarratorListSerializer(qs, many=True).data)
+        return Response(self._related(ids))
 
     @action(detail=True, methods=["get"])
     def students(self, request, pk=None):
         ids = self.get_object().students.values_list("student_id", flat=True)
+        return Response(self._related(ids))
+
+    @staticmethod
+    def _related(ids):
+        """Serialize related narrators, dropping any whose name is an extraction
+        artifact (a matn fragment) so the rijal view never presents noise as fact."""
         qs = Narrator.objects.filter(id__in=ids)
-        return Response(NarratorListSerializer(qs, many=True).data)
+        rows = [n for n in qs if is_plausible_name(n.name_arabic)]
+        return NarratorListSerializer(rows, many=True).data
 
     @action(detail=True, methods=["get"])
     def hadiths(self, request, pk=None):

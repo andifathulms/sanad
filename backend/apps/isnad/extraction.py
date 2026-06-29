@@ -95,8 +95,13 @@ def dedup_key(name: str) -> str:
 # judge whether a real name remains. Tokens are compared whole and normalized —
 # never as substrings (التيمي must not match التي).
 
+# Zero-width / bidi control marks that cling to tokens and break exact matching.
+_ZERO_WIDTH_RE = re.compile("[​-‏‪-‮﻿]")
+
+
 def _tok(s: str) -> str:
-    return re.sub(r"[إأآٱ]", "ا", strip_tashkeel(s)).replace("ى", "ي").replace("ة", "ه")
+    s = _ZERO_WIDTH_RE.sub("", strip_tashkeel(s))
+    return re.sub(r"[إأآٱ]", "ا", s).replace("ى", "ي").replace("ة", "ه")
 
 # Verbs / pronouns / particles that mark the matn beginning — never part of a name.
 _STOPWORDS = {
@@ -163,8 +168,10 @@ def is_plausible_name(name: str) -> bool:
     norm = [_tok(t) for t in toks]
     if any(t in _STOPWORDS for t in norm):
         return False
-    # A lone common matn noun (e.g. "حديثا" = "a hadith") is not a narrator.
-    if all(t in _MATN_NOUNS for t in norm):
+    # A matn noun anywhere (e.g. "حديثا", or "الصلاة" inside a captured span) marks
+    # the span as matn text, not a narrator name — no real name contains these.
+    # Compare with the definite article stripped so "الصلاة" matches "صلاة".
+    if any((t[2:] if t.startswith("ال") else t) in _MATN_NOUNS for t in norm):
         return False
     # Needs at least one real name token (not a function word / bare particle).
     return any(
